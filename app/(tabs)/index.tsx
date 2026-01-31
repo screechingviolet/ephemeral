@@ -122,7 +122,7 @@ export default function HomeScreen() {
             <ThemedView style={styles.screen}>
                 <View style={styles.landingContainer}>
                     <ThemedText style={styles.landingBrand}>
-                        Ephemera
+                        ephemeral
                     </ThemedText>
                     <ThemedText style={styles.landingTagline}>
                         Discover temporary art in an ever-changing city.
@@ -177,6 +177,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: 20,
     },
     landingBrand: {
+        fontFamily: "FrauncesSoft",
         fontSize: 44,
         lineHeight: 54,
         paddingBottom: 6,
