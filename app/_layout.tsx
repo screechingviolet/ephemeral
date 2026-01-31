@@ -23,6 +23,10 @@ export default function RootLayout() {
     const [fontsLoaded] = useFonts({
         FrauncesItalic: require("../assets/fonts/Fraunces-Italic-VariableFont_SOFT,WONK,opsz,wght.ttf"),
         FrauncesSoft: require("../assets/fonts/Fraunces-VariableFont_SOFT,WONK,opsz,wght.ttf"),
+        Fraunces: require("../assets/fonts/Fraunces_72pt_SuperSoft-Regular.ttf"),
+        FrauncesBold: require("../assets/fonts/Fraunces_72pt_SuperSoft-Bold.ttf"),
+        FrauncesSemiBold: require("../assets/fonts/Fraunces_72pt_SuperSoft-SemiBold.ttf"),
+        FrauncesThin: require("../assets/fonts/Fraunces_72pt_SuperSoft-Thin.ttf"),
     });
 
     // Hide splash once fonts are ready

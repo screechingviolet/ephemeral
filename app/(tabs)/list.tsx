@@ -4,6 +4,7 @@ import { Colors } from "@/constants/theme";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useState } from "react";
 import {
+  ImageBackground,
   ScrollView,
   StyleSheet,
   TextInput,
@@ -121,311 +122,363 @@ export default function EventsScreen() {
     const styles = createStyles(colors);
 
     return (
-        <ThemedView style={styles.container}>
-            <ScrollView
-                style={styles.scrollView}
-                showsVerticalScrollIndicator={false}
-            >
-                {/* Header */}
-                <View style={styles.header}>
-                    <ThemedText type="title" style={styles.title}>
-                        Events
-                    </ThemedText>
-                    <ThemedText style={styles.subtitle}>
-                        Discover what's happening nearby
-                    </ThemedText>
-                </View>
+        <ImageBackground
+            source={require("@/assets/images/bg.png")}
+            style={styles.background}
+            resizeMode="cover"
+        >
+            <ThemedView style={styles.container}>
+                <ScrollView
+                    style={styles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                >
+                    {/* Header */}
+                    <View style={styles.header}>
+                        <ThemedText style={styles.title}>Events</ThemedText>
+                        <ThemedText style={styles.subtitle}>
+                            Discover what’s happening nearby
+                        </ThemedText>
+                    </View>
 
-                {/* Search Bar */}
-                <View style={styles.searchContainer}>
-                    <TextInput
-                        style={[styles.searchInput, { color: colors.text }]}
-                        placeholder="Search events..."
-                        placeholderTextColor={
-                            colorScheme === "dark" ? colors.icon : "#8B6B5C"
-                        }
-                        value={searchQuery}
-                        onChangeText={setSearchQuery}
-                    />
-                </View>
-
-                {/* Category Filter */}
-                <View style={styles.filterSection}>
-                    <ThemedText style={styles.filterLabel}>Category</ThemedText>
-                    <ScrollView
-                        horizontal
-                        showsHorizontalScrollIndicator={false}
-                        style={styles.filterScroll}
-                    >
-                        {CATEGORIES.map((category) => (
-                            <TouchableOpacity
-                                key={category}
+                    {/* Search Bar */}
+                    <View style={styles.searchContainer}>
+                        <View style={styles.searchBar}>
+                            <ThemedText style={styles.searchIcon}>⌕</ThemedText>
+                            <TextInput
                                 style={[
-                                    styles.filterChip,
-                                    selectedCategory === category &&
-                                        styles.filterChipActive,
+                                    styles.searchInput,
+                                    { color: colors.text },
                                 ]}
-                                onPress={() => setSelectedCategory(category)}
-                            >
-                                <ThemedText
-                                    style={[
-                                        styles.filterChipText,
-                                        selectedCategory === category &&
-                                            styles.filterChipTextActive,
-                                    ]}
-                                >
-                                    {category}
-                                </ThemedText>
-                            </TouchableOpacity>
-                        ))}
-                    </ScrollView>
-                </View>
-
-                {/* Location Filter */}
-                <View style={styles.filterSection}>
-                    <ThemedText style={styles.filterLabel}>Location</ThemedText>
-                    <ScrollView
-                        horizontal
-                        showsHorizontalScrollIndicator={false}
-                        style={styles.filterScroll}
-                    >
-                        {LOCATIONS.map((location) => (
-                            <TouchableOpacity
-                                key={location}
-                                style={[
-                                    styles.filterChip,
-                                    selectedLocation === location &&
-                                        styles.filterChipActive,
-                                ]}
-                                onPress={() => setSelectedLocation(location)}
-                            >
-                                <ThemedText
-                                    style={[
-                                        styles.filterChipText,
-                                        selectedLocation === location &&
-                                            styles.filterChipTextActive,
-                                    ]}
-                                >
-                                    {location}
-                                </ThemedText>
-                            </TouchableOpacity>
-                        ))}
-                    </ScrollView>
-                </View>
-
-                {/* Events List */}
-                <View style={styles.eventsContainer}>
-                    {filteredEvents.length === 0 ? (
-                        <View style={styles.emptyState}>
-                            <ThemedText style={styles.emptyStateText}>
-                                No events found matching your filters
-                            </ThemedText>
+                                placeholder="Search events..."
+                                placeholderTextColor="#8E8A83"
+                                value={searchQuery}
+                                onChangeText={setSearchQuery}
+                            />
                         </View>
-                    ) : (
-                        filteredEvents.map((event) => (
-                            <TouchableOpacity
-                                key={event.id}
-                                style={styles.eventCard}
-                            >
-                                <View style={styles.eventHeader}>
-                                    <View style={styles.eventTitleContainer}>
-                                        <ThemedText
-                                            type="defaultSemiBold"
-                                            style={styles.eventTitle}
-                                        >
-                                            {event.title}
-                                        </ThemedText>
-                                        <View style={styles.eventMeta}>
-                                            <View
-                                                style={[
-                                                    styles.categoryBadge,
-                                                    {
-                                                        backgroundColor:
-                                                            colors.accent,
-                                                    },
-                                                ]}
-                                            >
-                                                <ThemedText
-                                                    style={styles.categoryText}
-                                                >
-                                                    {event.category}
-                                                </ThemedText>
-                                            </View>
+                    </View>
+
+                    {/* Category Filter */}
+                    <View style={styles.filterSection}>
+                        <ThemedText style={styles.filterLabel}>
+                            Category
+                        </ThemedText>
+                        <ScrollView
+                            horizontal
+                            showsHorizontalScrollIndicator={false}
+                            contentContainerStyle={styles.filterRow}
+                        >
+                            {CATEGORIES.map((category) => (
+                                <TouchableOpacity
+                                    key={category}
+                                    style={[
+                                        styles.filterChip,
+                                        selectedCategory === category &&
+                                            styles.filterChipActive,
+                                    ]}
+                                    onPress={() =>
+                                        setSelectedCategory(category)
+                                    }
+                                    activeOpacity={0.85}
+                                >
+                                    <ThemedText
+                                        style={[
+                                            styles.filterChipText,
+                                            selectedCategory === category &&
+                                                styles.filterChipTextActive,
+                                        ]}
+                                    >
+                                        {category}
+                                    </ThemedText>
+                                </TouchableOpacity>
+                            ))}
+                        </ScrollView>
+                    </View>
+
+                    {/* Location Filter */}
+                    <View style={styles.filterSection}>
+                        <ThemedText style={styles.filterLabel}>
+                            Location
+                        </ThemedText>
+                        <ScrollView
+                            horizontal
+                            showsHorizontalScrollIndicator={false}
+                            contentContainerStyle={styles.filterRow}
+                        >
+                            {LOCATIONS.map((location) => (
+                                <TouchableOpacity
+                                    key={location}
+                                    style={[
+                                        styles.filterChip,
+                                        selectedLocation === location &&
+                                            styles.filterChipActive,
+                                    ]}
+                                    onPress={() =>
+                                        setSelectedLocation(location)
+                                    }
+                                    activeOpacity={0.85}
+                                >
+                                    <ThemedText
+                                        style={[
+                                            styles.filterChipText,
+                                            selectedLocation === location &&
+                                                styles.filterChipTextActive,
+                                        ]}
+                                    >
+                                        {location}
+                                    </ThemedText>
+                                </TouchableOpacity>
+                            ))}
+                        </ScrollView>
+                    </View>
+
+                    {/* Events List */}
+                    <View style={styles.eventsContainer}>
+                        {filteredEvents.length === 0 ? (
+                            <View style={styles.emptyState}>
+                                <ThemedText style={styles.emptyStateText}>
+                                    No events found matching your filters
+                                </ThemedText>
+                            </View>
+                        ) : (
+                            filteredEvents.map((event) => (
+                                <TouchableOpacity
+                                    key={event.id}
+                                    style={styles.eventCard}
+                                    activeOpacity={0.92}
+                                >
+                                    {/* Title row */}
+                                    <View style={styles.eventHeader}>
+                                        <View style={styles.badge}>
                                             <ThemedText
-                                                style={styles.locationText}
+                                                style={styles.badgeText}
                                             >
-                                                📍 {event.location}
+                                                {event.category}
                                             </ThemedText>
                                         </View>
+                                        <ThemedText style={styles.eventTitle}>
+                                            {event.title}
+                                        </ThemedText>
                                     </View>
-                                </View>
 
-                                <ThemedText style={styles.eventDescription}>
-                                    {event.description}
-                                </ThemedText>
+                                    {/* Location */}
+                                    <ThemedText style={styles.locationText}>
+                                        📍 {event.location}
+                                    </ThemedText>
 
-                                <View style={styles.eventFooter}>
-                                    <ThemedText style={styles.eventDate}>
-                                        🗓️ {event.date}
+                                    {/* Description */}
+                                    <ThemedText style={styles.eventDescription}>
+                                        {event.description}
                                     </ThemedText>
-                                    <ThemedText style={styles.eventTime}>
-                                        🕐 {event.time}
-                                    </ThemedText>
-                                </View>
-                            </TouchableOpacity>
-                        ))
-                    )}
-                </View>
-            </ScrollView>
-        </ThemedView>
+
+                                    {/* Footer */}
+                                    <View style={styles.eventFooter}>
+                                        <ThemedText style={styles.eventMeta}>
+                                            🗓️ {event.date}
+                                        </ThemedText>
+                                        <ThemedText style={styles.eventMeta}>
+                                            🕐 {event.time}
+                                        </ThemedText>
+                                    </View>
+                                </TouchableOpacity>
+                            ))
+                        )}
+                    </View>
+                </ScrollView>
+            </ThemedView>
+        </ImageBackground>
     );
 }
 
+/**
+ * Palette (from you):
+ * Plum   #6E1352
+ * Mauve  #AC515F
+ * Almond #E98E58
+ * Linen  #F6F3E8
+ * Ash    #B9D3C2
+ * Teal   #51B0A5
+ */
 const createStyles = (colors: typeof Colors.light | typeof Colors.dark) =>
     StyleSheet.create({
-        container: {
-            flex: 1,
-        },
-        scrollView: {
-            flex: 1,
-        },
+        container: { flex: 1 },
+        scrollView: { flex: 1 },
+
+        // --- header ---
         header: {
             paddingHorizontal: 20,
-            paddingTop: 60,
-            paddingBottom: 20,
+            paddingTop: 70,
+            paddingBottom: 18,
+            alignItems: "center",
         },
         title: {
-            fontSize: 36,
-            fontWeight: "bold",
-            marginBottom: 8,
+            fontFamily: "FrauncesBold",
+            fontSize: 46,
+            lineHeight: 58,
+            letterSpacing: -0.3,
+            color: "#2B2A27",
         },
         subtitle: {
-            fontSize: 16,
-            opacity: 0.7,
+            fontFamily: "FrauncesSemiBold",
+            fontSize: 18,
+            lineHeight: 24,
+            opacity: 0.75,
+            marginTop: 6,
+            color: "#35332F",
+            textAlign: "center",
         },
+
+        // --- search ---
         searchContainer: {
             paddingHorizontal: 20,
-            marginBottom: 20,
+            marginBottom: 18,
+        },
+        searchBar: {
+            flexDirection: "row",
+            alignItems: "center",
+            height: 54,
+            borderRadius: 26,
+            backgroundColor: "rgba(246,243,232,0.70)", // linen glass
+            borderWidth: 1,
+            borderColor: "rgba(43,42,39,0.10)",
+            paddingHorizontal: 14,
+        },
+        searchIcon: {
+            fontSize: 16,
+            opacity: 0.55,
+            marginRight: 10,
+            color: "#2B2A27",
         },
         searchInput: {
-            backgroundColor:
-                colors.background === "#F6F3E8" ? "#FFFFFF" : "#1A1410",
-            borderRadius: 12,
-            padding: 16,
+            flex: 1,
             fontSize: 16,
-            borderWidth: 1,
-            borderColor: colors.icon,
+            paddingVertical: 0,
+            color: "#2B2A27",
         },
-        filterSection: {
-            marginBottom: 20,
-        },
+
+        // --- filters ---
+        filterSection: { marginBottom: 16 },
         filterLabel: {
-            fontSize: 14,
-            fontWeight: "600",
             paddingHorizontal: 20,
-            marginBottom: 12,
-            opacity: 0.8,
+            marginBottom: 10,
+            fontFamily: "Fraunces",
+            fontSize: 18,
+            lineHeight: 22,
+            color: "#2B2A27",
+            opacity: 0.9,
         },
-        filterScroll: {
-            paddingLeft: 20,
+        filterRow: {
+            paddingHorizontal: 20,
+            gap: 10,
         },
         filterChip: {
-            paddingHorizontal: 20,
+            paddingHorizontal: 16,
             paddingVertical: 10,
-            borderRadius: 20,
-            marginRight: 10,
-            backgroundColor:
-                colors.background === "#F6F3E8" ? "#FFFFFF" : "#1A1410",
+            borderRadius: 999,
+            backgroundColor: "rgba(246,243,232,0.65)",
             borderWidth: 1,
-            borderColor: colors.icon,
+            borderColor: "rgba(43,42,39,0.10)",
         },
         filterChipActive: {
-            backgroundColor: colors.tint,
-            borderColor: colors.tint,
+            backgroundColor: "rgba(172,81,95,0.22)", // mauve tint
+            borderColor: "rgba(172,81,95,0.18)",
         },
         filterChipText: {
             fontSize: 14,
-            fontWeight: "500",
+            color: "#2B2A27",
+            opacity: 0.82,
         },
         filterChipTextActive: {
-            color: colors.background === "#F6F3E8" ? "#0F0A08" : "#F6F3E8",
-            fontWeight: "600",
+            color: "#6E1352", // plum
+            opacity: 1,
         },
+
+        // --- cards ---
         eventsContainer: {
             paddingHorizontal: 20,
-            paddingBottom: 40,
+            paddingBottom: 50,
+            paddingTop: 6,
+            gap: 16,
         },
         eventCard: {
-            backgroundColor:
-                colors.background === "#F6F3E8" ? "#FFFFFF" : "#1A1410",
-            borderRadius: 16,
-            padding: 20,
-            marginBottom: 16,
+            borderRadius: 26,
+            padding: 18,
+            backgroundColor: "rgba(246,243,232,0.62)",
             borderWidth: 1,
-            borderColor: colors.icon,
+            borderColor: "rgba(43,42,39,0.08)",
             shadowColor: "#000",
-            shadowOffset: { width: 0, height: 2 },
-            shadowOpacity: 0.1,
-            shadowRadius: 4,
-            elevation: 3,
+            shadowOffset: { width: 0, height: 10 },
+            shadowOpacity: 0.06,
+            shadowRadius: 20,
+            elevation: 2,
         },
         eventHeader: {
-            marginBottom: 12,
-        },
-        eventTitleContainer: {
-            gap: 8,
-        },
-        eventTitle: {
-            fontSize: 18,
-            marginBottom: 4,
-        },
-        eventMeta: {
             flexDirection: "row",
             alignItems: "center",
-            gap: 12,
+            gap: 10,
+            marginBottom: 10,
             flexWrap: "wrap",
         },
-        categoryBadge: {
+        badge: {
             paddingHorizontal: 12,
-            paddingVertical: 4,
-            borderRadius: 12,
+            paddingVertical: 6,
+            borderRadius: 999,
+            backgroundColor: "rgba(81,176,165,0.20)", // teal tint
+            borderWidth: 1,
+            borderColor: "rgba(81,176,165,0.18)",
         },
-        categoryText: {
+        badgeText: {
             fontSize: 12,
-            fontWeight: "600",
-            color: "#0F0A08",
+            color: "#2B2A27",
+            opacity: 0.9,
+        },
+        eventTitle: {
+            fontFamily: "FrauncesSemiBold",
+            fontSize: 22,
+            lineHeight: 28,
+            color: "#2B2A27",
+            letterSpacing: -0.15,
         },
         locationText: {
-            fontSize: 13,
-            opacity: 0.7,
+            fontSize: 14,
+            opacity: 0.75,
+            marginBottom: 8,
+            color: "#35332F",
         },
         eventDescription: {
-            fontSize: 14,
-            lineHeight: 20,
-            marginBottom: 12,
-            opacity: 0.8,
+            fontSize: 15,
+            lineHeight: 21,
+            opacity: 0.82,
+            marginBottom: 14,
+            color: "#2B2A27",
         },
         eventFooter: {
             flexDirection: "row",
             justifyContent: "space-between",
             paddingTop: 12,
             borderTopWidth: 1,
-            borderTopColor: colors.icon,
-            opacity: 0.7,
+            borderTopColor: "rgba(43,42,39,0.08)",
         },
-        eventDate: {
-            fontSize: 13,
+        eventMeta: {
+            fontSize: 13.5,
+            opacity: 0.75,
+            color: "#35332F",
         },
-        eventTime: {
-            fontSize: 13,
-        },
-        emptyState: {
-            paddingVertical: 60,
-            alignItems: "center",
-        },
+
+        // --- empty ---
+        emptyState: { paddingVertical: 60, alignItems: "center" },
         emptyStateText: {
             fontSize: 16,
-            opacity: 0.6,
+            opacity: 0.65,
             textAlign: "center",
+            color: "#35332F",
+        },
+
+        background: {
+            flex: 1,
+        },
+
+        container: {
+            flex: 1,
+            backgroundColor: "transparent", // IMPORTANT
         },
     });

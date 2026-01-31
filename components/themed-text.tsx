@@ -1,11 +1,10 @@
-import { StyleSheet, Text, type TextProps } from "react-native";
-
 import { useThemeColor } from "@/hooks/use-theme-color";
+import { StyleSheet, Text, type TextProps } from "react-native";
 
 export type ThemedTextProps = TextProps & {
     lightColor?: string;
     darkColor?: string;
-    type?: "default" | "title" | "defaultSemiBold" | "subtitle" | "link";
+    type?: "default" | "title" | "subtitle" | "bold" | "link";
 };
 
 export function ThemedText({
@@ -21,11 +20,11 @@ export function ThemedText({
         <Text
             style={[
                 { color },
-                type === "default" ? styles.default : undefined,
-                type === "title" ? styles.title : undefined,
-                type === "defaultSemiBold" ? styles.defaultSemiBold : undefined,
-                type === "subtitle" ? styles.subtitle : undefined,
-                type === "link" ? styles.link : undefined,
+                styles.base,
+                type === "title" && styles.title,
+                type === "subtitle" && styles.subtitle,
+                type === "bold" && styles.bold,
+                type === "link" && styles.link,
                 style,
             ]}
             {...rest}
@@ -34,28 +33,29 @@ export function ThemedText({
 }
 
 const styles = StyleSheet.create({
-    default: {
+    base: {
+        fontFamily: "FrauncesRegular",
         fontSize: 16,
         lineHeight: 24,
-    },
-    defaultSemiBold: {
-        fontSize: 16,
-        lineHeight: 24,
-        // removed fontWeight
     },
     title: {
-        fontSize: 32,
-        lineHeight: 36, // also fix: 32 lineHeight can clip
-        // removed fontWeight
+        fontFamily: "FrauncesBold",
+        fontSize: 42,
+        lineHeight: 52,
+        letterSpacing: -0.4,
     },
     subtitle: {
-        fontSize: 20,
-        lineHeight: 26,
-        // removed fontWeight
+        fontFamily: "FrauncesLight",
+        fontSize: 18,
+        lineHeight: 24,
+        opacity: 0.8,
+    },
+    bold: {
+        fontFamily: "FrauncesSemiBold",
     },
     link: {
-        lineHeight: 30,
+        fontFamily: "FrauncesSemiBold",
         fontSize: 16,
-        color: "#0a7ea4",
+        color: "#6E1352",
     },
 });
