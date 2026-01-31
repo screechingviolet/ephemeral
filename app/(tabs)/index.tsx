@@ -178,6 +178,7 @@ const styles = StyleSheet.create({
     },
     landingBrand: {
         fontFamily: "FrauncesSoft",
+        fontWeight: "200",
         fontSize: 44,
         lineHeight: 54,
         paddingBottom: 6,

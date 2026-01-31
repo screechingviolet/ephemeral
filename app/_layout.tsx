@@ -21,7 +21,7 @@ export default function RootLayout() {
     const colorScheme = useColorScheme();
 
     const [fontsLoaded] = useFonts({
-        Fraunces: require("../assets/fonts/Fraunces-Italic-VariableFont_SOFT,WONK,opsz,wght.ttf"),
+        FrauncesItalic: require("../assets/fonts/Fraunces-Italic-VariableFont_SOFT,WONK,opsz,wght.ttf"),
         FrauncesSoft: require("../assets/fonts/Fraunces-VariableFont_SOFT,WONK,opsz,wght.ttf"),
     });
 
