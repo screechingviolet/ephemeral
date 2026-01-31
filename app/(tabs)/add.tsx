@@ -8,8 +8,6 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { Fonts } from '@/constants/theme';
-// import MapScreen from '@/components/MapScreen';
-
 
 export default function TabTwoScreen() {
   return (
@@ -33,8 +31,6 @@ export default function TabTwoScreen() {
         </ThemedText>
       </ThemedView>
       <ThemedText>This app includes example code to help you get started.</ThemedText>
-      {/*<MapScreen />*/}
-
       <Collapsible title="File-based routing">
         <ThemedText>
           This app has two screens:{' '}

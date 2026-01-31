@@ -2,28 +2,46 @@
  * Below are the colors that are used in the app. The colors are defined in the light and dark mode.
  * There are many other ways to style your app. For example, [Nativewind](https://www.nativewind.dev/), [Tamagui](https://tamagui.dev/), [unistyles](https://reactnativeunistyles.vercel.app), etc.
  */
-
 import { Platform } from 'react-native';
 
-const tintColorLight = '#0a7ea4';
-const tintColorDark = '#fff';
+// Color palette
+const deepPlum = '#6E1352';
+const dustyRose = '#AC515F';
+const warmCoral = '#E98E58';
+const cream = '#F6F3E8';
+const sage = '#B9D3C2';
+const teal = '#51B0A5';
+const espresso = '#0F0A08';
+
+const tintColorLight = teal;
+const tintColorDark = sage;
 
 export const Colors = {
   light: {
-    text: '#11181C',
-    background: '#fff',
+    text: espresso,
+    background: cream,
     tint: tintColorLight,
-    icon: '#687076',
-    tabIconDefault: '#687076',
+    icon: dustyRose,
+    tabIconDefault: '#8B6B5C',
     tabIconSelected: tintColorLight,
+    accent: warmCoral,
+    secondary: sage,
+    primary: deepPlum,
   },
   dark: {
-    text: '#ECEDEE',
-    background: '#151718',
+    text: cream,
+    background: espresso,
     tint: tintColorDark,
-    icon: '#9BA1A6',
-    tabIconDefault: '#9BA1A6',
+    icon: sage,
+    tabIconDefault: dustyRose,
     tabIconSelected: tintColorDark,
+    accent: warmCoral,
+    secondary: teal,
+    primary: deepPlum,
+    // Gradient colors for shifting background
+    gradientStart: '#1A0E0A',
+    gradientMid: deepPlum,
+    gradientEnd: '#0F2B28',
   },
 };
 
