@@ -45,6 +45,7 @@ export default function MapScreen({
   const [fetchingEvents, setFetchingEvents] = useState<boolean>(false);
   const [selectedImageUrl, setSelectedImageUrl] = useState<string | null>(null);
   const [imageLoading, setImageLoading] = useState<boolean>(false);
+  const [statusUpdating, setStatusUpdating] = useState<boolean>(false);
 
   useEffect(() => {
     getUserLocation();
@@ -155,6 +156,34 @@ export default function MapScreen({
       Alert.alert('Error', 'Failed to load nearby events');
     } finally {
       setFetchingEvents(false);
+    }
+  };
+
+  const markEventInactive = async (eventId: string) => {
+    if (statusUpdating) return;
+    try {
+      setStatusUpdating(true);
+      const response = await fetch(`${API_BASE_URL}/events/${encodeURIComponent(eventId)}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'INACTIVE' }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text().catch(() => '');
+        throw new Error(errorText || 'Failed to update event status');
+      }
+
+      Alert.alert('Thanks!', 'We marked this moment as inactive.');
+      setModalVisible(false);
+      if (location) {
+        fetchNearbyEvents(location.latitude, location.longitude);
+      }
+    } catch (error) {
+      console.error('Failed to update event status:', error);
+      Alert.alert('Update failed', 'Could not update this moment. Please try again.');
+    } finally {
+      setStatusUpdating(false);
     }
   };
 
@@ -371,6 +400,16 @@ export default function MapScreen({
                 textStyle={[styles.actionButtonText, { color: '#0F0A08' }]}
               />
             </View>
+
+            <TouchableOpacity
+              style={[styles.inactiveButton, { backgroundColor: colors.accent }]}
+              onPress={() => markEventInactive(selectedEvent.event_id)}
+              disabled={statusUpdating}
+            >
+              <Text style={[styles.inactiveButtonText, { color: '#0F0A08' }]}>
+                {statusUpdating ? 'Updating…' : 'Not there'}
+              </Text>
+            </TouchableOpacity>
           </>
         )}
       </ScrollView>
@@ -434,6 +473,19 @@ routeButton: {
 tipButton: {
   width: 60,
   justifyContent: 'center',
+},
+inactiveButton: {
+  marginTop: 12,
+  width: '100%',
+  paddingVertical: 14,
+  borderRadius: 14,
+  alignItems: 'center',
+  borderWidth: 1,
+  borderColor: 'rgba(233,142,88,0.45)',
+},
+inactiveButtonText: {
+  fontSize: 15,
+  fontWeight: '600',
 },
 actionButtonText: {
   fontSize: 17,
