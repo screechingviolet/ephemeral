@@ -8,6 +8,7 @@ import {
   TextInput,
   View,
   Animated,
+  ImageBackground,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -160,65 +161,72 @@ export default function HomeScreen() {
     // ---------- LANDING (center textbox) ----------
     if (phase === "landing") {
         return (
-        <ThemedView style={styles.screen}>
-            <View style={styles.landingContainer}>
-            <ThemedText style={styles.landingBrand}>ephemeral</ThemedText>
-            
-            <View style={styles.taglineRow}>
-                <ThemedText style={styles.landingTagline}>Discover </ThemedText>
+        <ImageBackground
+            source={require("@/assets/images/ephemeral_home_background.png")}
+            style={styles.screen}
+            resizeMode="cover"
+        >
+            <ThemedView style={[styles.screen, { backgroundColor: 'transparent' }]}>
+                <View style={styles.landingContainer}>
+                <ThemedText style={styles.landingBrand}>ephemeral</ThemedText>
                 
-                <View style={styles.animatedTextContainer}>
-                <Animated.View style={{ 
-                    opacity: fadeAnim, 
-                    transform: [{ translateY: slideAnim }] 
-                }}>
-                    <ThemedText style={[styles.landingTagline, styles.highlightText]}>
-                    {PHRASES[phraseIndex]}
-                    </ThemedText>
-                </Animated.View>
+                <View style={styles.taglineRow}>
+                    <ThemedText style={styles.landingTagline}>Discover </ThemedText>
+                    
+                    <View style={styles.animatedTextContainer}>
+                    <Animated.View style={{ 
+                        opacity: fadeAnim, 
+                        transform: [{ translateY: slideAnim }] 
+                    }}>
+                        <ThemedText style={[styles.landingTagline, styles.highlightText]}>
+                        {PHRASES[phraseIndex]}
+                        </ThemedText>
+                    </Animated.View>
+                    </View>
+                    <ThemedText style={styles.landingTagline}> in an</ThemedText>
                 </View>
-
-                <ThemedText style={styles.landingTagline}> in an</ThemedText>
-            </View>
-
-            <ThemedText style={[styles.landingTagline, { marginBottom: 12 }]}>
-                ever-changing city.
-            </ThemedText>
-
-            <SearchBar />
-            </View>
-        </ThemedView>
+                <ThemedText style={[styles.landingTagline, { marginBottom: 12 }]}>
+                    ever-changing city.
+                </ThemedText>
+                <SearchBar />
+                </View>
+            </ThemedView>
+        </ImageBackground>
         );
     }
 
     // ---------- CHAT (textbox pinned to bottom) ----------
     return (
-        <ThemedView style={styles.screen}>
-            {/* Header with safe area */}
-            <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
-                <ThemedText style={styles.headerBrand}>Ephemera</ThemedText>
-                <ThemedText style={styles.headerMeta}>beta</ThemedText>
-            </View>
-
-            {/* Messages */}
-            <FlatList
-                ref={listRef}
-                data={messages}
-                keyExtractor={(m) => m.id}
-                renderItem={renderBubble}
-                contentContainerStyle={styles.listContent}
-                onContentSizeChange={() =>
-                    listRef.current?.scrollToEnd({ animated: true })
-                }
-            />
-
-            {/* Bottom search bar */}
-            <KeyboardAvoidingView
-                behavior={Platform.OS === "ios" ? "padding" : undefined}
-            >
-                <SearchBar bottom />
-            </KeyboardAvoidingView>
-        </ThemedView>
+        <ImageBackground
+            source={require("@/assets/images/bg.png")}
+            style={styles.screen}
+            resizeMode="cover"
+        >
+            <ThemedView style={[styles.screen, { backgroundColor: 'transparent' }]}>
+                {/* Header with safe area */}
+                <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
+                    <ThemedText style={styles.headerBrand}>Ephemera</ThemedText>
+                    <ThemedText style={styles.headerMeta}>beta</ThemedText>
+                </View>
+                {/* Messages */}
+                <FlatList
+                    ref={listRef}
+                    data={messages}
+                    keyExtractor={(m) => m.id}
+                    renderItem={renderBubble}
+                    contentContainerStyle={styles.listContent}
+                    onContentSizeChange={() =>
+                        listRef.current?.scrollToEnd({ animated: true })
+                    }
+                />
+                {/* Bottom search bar */}
+                <KeyboardAvoidingView
+                    behavior={Platform.OS === "ios" ? "padding" : undefined}
+                >
+                    <SearchBar bottom />
+                </KeyboardAvoidingView>
+            </ThemedView>
+        </ImageBackground>
     );
 }
 
