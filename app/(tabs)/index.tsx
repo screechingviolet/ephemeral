@@ -86,7 +86,11 @@ export default function HomeScreen() {
     useEffect(() => {
         if (phase !== "landing") return;
 
-        const cycleAnimation = () => {
+        let isCancelled = false;
+
+        const runCycle = () => {
+            if (isCancelled) return;
+
             Animated.parallel([
                 Animated.timing(fadeAnim, {
                     toValue: 0,
@@ -101,7 +105,6 @@ export default function HomeScreen() {
             ]).start(() => {
                 setPhraseIndex((prev) => (prev + 1) % PHRASES.length);
 
-                // reset below
                 slideAnim.setValue(10);
 
                 Animated.parallel([
@@ -115,22 +118,22 @@ export default function HomeScreen() {
                         duration: 400,
                         useNativeDriver: true,
                     }),
-                ]).start();
+                ]).start(() => {
+                    // wait 5s AFTER animation completes
+                    setTimeout(runCycle, 5000);
+                });
             });
         };
 
-        // optional: wait a bit before the first cycle
-        const startTimeout = setTimeout(() => {
-            cycleAnimation();
-        }, 2500);
-
-        const interval = setInterval(cycleAnimation, 5000);
+        // initial delay before first change
+        const start = setTimeout(runCycle, 5000);
 
         return () => {
-            clearTimeout(startTimeout);
-            clearInterval(interval);
+            isCancelled = true;
+            clearTimeout(start);
         };
     }, [phase]);
+
 
     const [input, setInput] = useState("");
     const [messages, setMessages] = useState<Msg[]>([
