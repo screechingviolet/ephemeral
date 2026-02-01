@@ -12,6 +12,8 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import LocationPicker from '@/components/LocationPicker';
+
 
 const CATEGORIES = [
     "Free Entry - Tip Optional",
@@ -31,6 +33,8 @@ export default function AddEventScreen() {
     const [selectedCategory, setSelectedCategory] = useState("");
     const [selectedLocation, setSelectedLocation] = useState("");
     const [customLocation, setCustomLocation] = useState("");
+    const [latitude, setLatitude] = useState<number | null>(null);
+    const [longitude, setLongitude] = useState<number | null>(null);
     const [date, setDate] = useState("");
     const [startTime, setStartTime] = useState("");
     const [endTime, setEndTime] = useState("");
@@ -59,6 +63,10 @@ export default function AddEventScreen() {
                 "Please enter a custom location",
             );
             return;
+        }
+        if (!latitude || !longitude) {
+          Alert.alert('Missing Information', 'Please select a location on the map');
+          return;
         }
         if (!date.trim()) {
             Alert.alert("Missing Information", "Please enter a date");
@@ -89,6 +97,8 @@ export default function AddEventScreen() {
                 selectedLocation === "Other"
                     ? customLocation
                     : selectedLocation,
+            latitude,
+            longitude,
             date,
             startTime,
             endTime,
@@ -110,6 +120,8 @@ export default function AddEventScreen() {
                     setSelectedCategory("");
                     setSelectedLocation("");
                     setCustomLocation("");
+                    setLatitude(null);
+            setLongitude(null);
                     setDate("");
                     setStartTime("");
                     setEndTime("");
@@ -196,7 +208,7 @@ export default function AddEventScreen() {
                             </View>
                         </View>
 
-                        {/* Location */}
+                        {/*
                         <View style={styles.inputGroup}>
                             <ThemedText style={styles.label}>
                                 Location *
@@ -243,14 +255,24 @@ export default function AddEventScreen() {
                                 />
                             )}
 
-                            {/* Placeholder for address entry and map selection */}
+                            
                             <View style={styles.placeholderCard}>
                                 <ThemedText style={styles.placeholderText}>
                                     📍 Address entry and map selection coming
                                     soon
                                 </ThemedText>
                             </View>
-                        </View>
+                        </View>*/}
+
+                        {/* Location Picker with Map */}
+                        <LocationPicker
+                          onLocationSelect={(lat, lng, addr) => {
+                            setLatitude(lat);
+                            setLongitude(lng);
+                          }}
+                          initialLatitude={latitude || undefined}
+                          initialLongitude={longitude || undefined}
+                        />
 
                         {/* Venue */}
                         <View style={styles.inputGroup}>
