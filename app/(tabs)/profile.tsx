@@ -1,13 +1,13 @@
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { useState } from "react";
-import { 
-    StyleSheet, 
-    ImageBackground, 
-    View, 
-    TextInput, 
+import {
+    ImageBackground,
     Pressable,
-    ScrollView 
+    ScrollView,
+    StyleSheet,
+    TextInput,
+    View,
 } from "react-native";
 
 export default function ProfileScreen() {
@@ -37,14 +37,24 @@ export default function ProfileScreen() {
                 style={styles.background}
                 resizeMode="cover"
             >
-                <ThemedView style={[styles.container, { backgroundColor: 'transparent' }]}>
+                <ThemedView
+                    style={[
+                        styles.container,
+                        { backgroundColor: "transparent" },
+                    ]}
+                >
                     <ThemedText style={styles.title}>Profile</ThemedText>
                     <ThemedText style={styles.subtitle}>
                         Welcome back, {name || email}!
                     </ThemedText>
-                    
-                    <Pressable style={styles.logoutButton} onPress={handleLogout}>
-                        <ThemedText style={styles.logoutButtonText}>Log Out</ThemedText>
+
+                    <Pressable
+                        style={styles.logoutButton}
+                        onPress={handleLogout}
+                    >
+                        <ThemedText style={styles.logoutButtonText}>
+                            Log Out
+                        </ThemedText>
                     </Pressable>
                 </ThemedView>
             </ImageBackground>
@@ -58,15 +68,19 @@ export default function ProfileScreen() {
             resizeMode="cover"
         >
             <ScrollView style={styles.scrollView}>
-                <ThemedView style={[styles.container, { backgroundColor: 'transparent' }]}>
+                <ThemedView
+                    style={[
+                        styles.container,
+                        { backgroundColor: "transparent" },
+                    ]}
+                >
                     <ThemedText style={styles.title}>
                         {isSignUp ? "Sign Up" : "Login"}
                     </ThemedText>
                     <ThemedText style={styles.subtitle}>
-                        {isSignUp 
-                            ? "Create your account" 
-                            : "Welcome back to Ephemeral"
-                        }
+                        {isSignUp
+                            ? "Create your account"
+                            : "Welcome back to Ephemeral"}
                     </ThemedText>
 
                     <View style={styles.formContainer}>
@@ -105,8 +119,8 @@ export default function ProfileScreen() {
                             />
                         </View>
 
-                        <Pressable 
-                            style={styles.authButton} 
+                        <Pressable
+                            style={styles.authButton}
                             onPress={handleAuth}
                         >
                             <ThemedText style={styles.authButtonText}>
@@ -114,15 +128,14 @@ export default function ProfileScreen() {
                             </ThemedText>
                         </Pressable>
 
-                        <Pressable 
+                        <Pressable
                             style={styles.switchButton}
                             onPress={() => setIsSignUp(!isSignUp)}
                         >
                             <ThemedText style={styles.switchButtonText}>
-                                {isSignUp 
-                                    ? "Already have an account? Login" 
-                                    : "Don't have an account? Sign Up"
-                                }
+                                {isSignUp
+                                    ? "Already have an account? Login"
+                                    : "Don't have an account? Sign Up"}
                             </ThemedText>
                         </Pressable>
                     </View>
@@ -147,6 +160,8 @@ const styles = StyleSheet.create({
     title: {
         fontFamily: "FrauncesBold",
         fontSize: 40,
+        lineHeight: 52,
+        paddingVertical: 4,
         letterSpacing: -0.3,
         color: "#2B2A27",
         textAlign: "center",
