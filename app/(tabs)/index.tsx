@@ -1,14 +1,14 @@
-import React, { useRef, useState, useEffect } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
+  Animated,
   FlatList,
+  ImageBackground,
   KeyboardAvoidingView,
   Platform,
   Pressable,
   StyleSheet,
   TextInput,
   View,
-  Animated,
-  ImageBackground,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -19,12 +19,58 @@ type Role = "user" | "assistant";
 type Msg = { id: string; role: Role; text: string };
 
 const PHRASES = [
-  "temporary art",
-  "pop-up stands",
-  "live concerts",
-  "hidden galleries",
-  "street performances"
+    "temporary art",
+    "pop-up stands",
+    "live concerts",
+    "hidden galleries",
+    "street performances",
 ];
+
+// --- MOVED OUTSIDE HOMESCREEN ---
+type SearchBarProps = {
+    bottom?: boolean;
+    input: string;
+    setInput: (text: string) => void;
+    submit: () => void;
+    canSend: boolean;
+};
+
+const SearchBar = ({
+    bottom,
+    input,
+    setInput,
+    submit,
+    canSend,
+}: SearchBarProps) => (
+    <View style={[styles.searchWrap, bottom && styles.searchWrapBottom]}>
+        {/* The Input Pill */}
+        <View style={styles.searchBar}>
+            <ThemedText style={styles.searchIcon}>⌕</ThemedText>
+            <TextInput
+                value={input}
+                onChangeText={setInput}
+                placeholder={
+                    bottom
+                        ? "Search for temporary art…"
+                        : "Search for murals, pop-ups, performances…"
+                }
+                placeholderTextColor="#8E8A83"
+                style={styles.searchInput}
+                returnKeyType="search"
+                onSubmitEditing={submit}
+            />
+        </View>
+
+        {/* The Button (Now Outside) */}
+        <Pressable
+            onPress={submit}
+            disabled={!canSend}
+            style={[styles.searchBtn, !canSend && styles.searchBtnDisabled]}
+        >
+            <ThemedText style={styles.searchBtnText}>Go</ThemedText>
+        </Pressable>
+    </View>
+);
 
 export default function HomeScreen() {
     const insets = useSafeAreaInsets();
@@ -37,31 +83,54 @@ export default function HomeScreen() {
     const slideAnim = useRef(new Animated.Value(0)).current;
 
     useEffect(() => {
-    if (phase === "landing") {
+        if (phase !== "landing") return;
+
         const cycleAnimation = () => {
-        // 1. Fade Out and Slide Up
-        Animated.parallel([
-            Animated.timing(fadeAnim, { toValue: 0, duration: 400, useNativeDriver: true }),
-            Animated.timing(slideAnim, { toValue: -10, duration: 400, useNativeDriver: true })
-        ]).start(() => {
-            // 2. Switch Text
-            setPhraseIndex((prev) => (prev + 1) % PHRASES.length);
-            
-            // 3. Reset position to bottom BEFORE starting fade in
-            slideAnim.setValue(10);
-            
-            // 4. Fade In and Slide Up to center
             Animated.parallel([
-            Animated.timing(fadeAnim, { toValue: 1, duration: 400, useNativeDriver: true }),
-            Animated.timing(slideAnim, { toValue: 0, duration: 400, useNativeDriver: true })
-            ]).start();
-        });
+                Animated.timing(fadeAnim, {
+                    toValue: 0,
+                    duration: 400,
+                    useNativeDriver: true,
+                }),
+                Animated.timing(slideAnim, {
+                    toValue: -10,
+                    duration: 400,
+                    useNativeDriver: true,
+                }),
+            ]).start(() => {
+                setPhraseIndex((prev) => (prev + 1) % PHRASES.length);
+
+                // reset below
+                slideAnim.setValue(10);
+
+                Animated.parallel([
+                    Animated.timing(fadeAnim, {
+                        toValue: 1,
+                        duration: 400,
+                        useNativeDriver: true,
+                    }),
+                    Animated.timing(slideAnim, {
+                        toValue: 0,
+                        duration: 400,
+                        useNativeDriver: true,
+                    }),
+                ]).start();
+            });
         };
 
+        // optional: wait a bit before the first cycle
+        const startTimeout = setTimeout(() => {
+            cycleAnimation();
+        }, 2500);
+
         const interval = setInterval(cycleAnimation, 5000);
-        return () => clearInterval(interval);
-    }
-    }, [phase, fadeAnim, slideAnim]);
+
+        return () => {
+            clearTimeout(startTimeout);
+            clearInterval(interval);
+        };
+    }, [phase]);
+
     const [input, setInput] = useState("");
     const [messages, setMessages] = useState<Msg[]>([
         {
@@ -80,7 +149,6 @@ export default function HomeScreen() {
         const q = input.trim();
         setInput("");
 
-        // First submit flips to chat view so the bar "moves down"
         if (phase === "landing") setPhase("chat");
 
         setMessages((prev) => [
@@ -127,103 +195,109 @@ export default function HomeScreen() {
         );
     };
 
-    const SearchBar = ({ bottom }: { bottom?: boolean }) => (
-        <View style={[styles.searchWrap, bottom && styles.searchWrapBottom]}>
-            <View style={styles.searchBar}>
-                <ThemedText style={styles.searchIcon}>⌕</ThemedText>
-                <TextInput
-                    value={input}
-                    onChangeText={setInput}
-                    placeholder={
-                        bottom
-                            ? "Search for temporary art…"
-                            : "Search for murals, pop-ups, performances…"
-                    }
-                    placeholderTextColor="#8E8A83"
-                    style={styles.searchInput}
-                    returnKeyType="search"
-                    onSubmitEditing={submit}
-                />
-                <Pressable
-                    onPress={submit}
-                    disabled={!canSend}
-                    style={[
-                        styles.searchBtn,
-                        !canSend && styles.searchBtnDisabled,
-                    ]}
-                >
-                    <ThemedText style={styles.searchBtnText}>Go</ThemedText>
-                </Pressable>
-            </View>
-        </View>
-    );
-
-    // ---------- LANDING (center textbox) ----------
+    // ---------- LANDING ----------
     if (phase === "landing") {
         return (
-        <ImageBackground
-            source={require("@/assets/images/ephemeral_home_background.png")}
-            style={styles.screen}
-            resizeMode="cover"
-        >
-            <ThemedView style={[styles.screen, { backgroundColor: 'transparent' }]}>
-                <View style={styles.landingContainer}>
-                <ThemedText style={styles.landingBrand}>ephemeral</ThemedText>
-                
-                <View style={styles.taglineRow}>
-                    <ThemedText style={styles.landingTagline}>Discover </ThemedText>
-                    
-                    <View style={styles.animatedTextContainer}>
-                    <Animated.View style={{ 
-                        opacity: fadeAnim, 
-                        transform: [{ translateY: slideAnim }] 
-                    }}>
-                        <ThemedText style={[styles.landingTagline, styles.highlightText]}>
-                        {PHRASES[phraseIndex]}
+            <ImageBackground
+                source={require("@/assets/images/ephemeral_home_background.png")}
+                style={styles.screen}
+                resizeMode="cover"
+            >
+                <ThemedView
+                    style={styles.screen}
+                    lightColor="transparent"
+                    darkColor="transparent"
+                >
+                    <View style={styles.landingContainer}>
+                        <ThemedText style={styles.landingBrand}>
+                            ephemeral
                         </ThemedText>
-                    </Animated.View>
+
+                        <View style={styles.taglineRow}>
+                            <ThemedText style={styles.landingTagline}>
+                                Discover{" "}
+                            </ThemedText>
+
+                            <View style={styles.animatedTextContainer}>
+                                <Animated.View
+                                    style={{
+                                        opacity: fadeAnim,
+                                        transform: [{ translateY: slideAnim }],
+                                    }}
+                                >
+                                    <ThemedText
+                                        style={[
+                                            styles.landingTagline,
+                                            styles.highlightText,
+                                        ]}
+                                    >
+                                        {PHRASES[phraseIndex]}
+                                    </ThemedText>
+                                </Animated.View>
+                            </View>
+
+                            <ThemedText style={styles.landingTagline}>
+                                {" "}
+                                in an
+                            </ThemedText>
+                        </View>
+
+                        <ThemedText
+                            style={[
+                                styles.landingTagline,
+                                { marginBottom: 12 },
+                            ]}
+                        >
+                            ever-changing city.
+                        </ThemedText>
+
+                        <SearchBar
+                            input={input}
+                            setInput={setInput}
+                            submit={submit}
+                            canSend={canSend}
+                        />
                     </View>
-                    <ThemedText style={styles.landingTagline}> in an</ThemedText>
-                </View>
-                <ThemedText style={[styles.landingTagline, { marginBottom: 12 }]}>
-                    ever-changing city.
-                </ThemedText>
-                <SearchBar />
-                </View>
-            </ThemedView>
-        </ImageBackground>
+                </ThemedView>
+            </ImageBackground>
         );
     }
 
-    // ---------- CHAT (textbox pinned to bottom) ----------
+    // ---------- CHAT ----------
     return (
         <ImageBackground
             source={require("@/assets/images/bg.png")}
             style={styles.screen}
             resizeMode="cover"
         >
-            <ThemedView style={[styles.screen, { backgroundColor: 'transparent' }]}>
-                {/* Header with safe area */}
+            <ThemedView
+                style={[styles.screen, { backgroundColor: "transparent" }]}
+            >
                 <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
-                    <ThemedText style={styles.headerBrand}>Ephemera</ThemedText>
-                    <ThemedText style={styles.headerMeta}>beta</ThemedText>
+                    <ThemedText style={styles.headerBrand}>ephemera</ThemedText>
                 </View>
-                {/* Messages */}
+
                 <FlatList
                     ref={listRef}
                     data={messages}
                     keyExtractor={(m) => m.id}
                     renderItem={renderBubble}
                     contentContainerStyle={styles.listContent}
+                    style={{ backgroundColor: "transparent" }}
                     onContentSizeChange={() =>
                         listRef.current?.scrollToEnd({ animated: true })
                     }
                 />
-                {/* Bottom search bar */}
                 <KeyboardAvoidingView
                     behavior={Platform.OS === "ios" ? "padding" : undefined}
                 >
-                    <SearchBar bottom />
+                    <SearchBar
+                        bottom
+                        input={input}
+                        setInput={setInput}
+                        submit={submit}
+                        canSend={canSend}
+                    />
                 </KeyboardAvoidingView>
             </ThemedView>
         </ImageBackground>
@@ -254,19 +328,19 @@ const styles = StyleSheet.create({
         fontSize: 16,
         opacity: 0.7,
         textAlign: "center",
-        marginBottom: 0, // Set this to 0 because the taglineRow handles the spacing
+        marginBottom: 0,
     },
     taglineRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        height: 30, 
-        marginTop: 10, // Add space above the row
-        marginBottom: 4, // Space between this and the "in an ever-changing city" line
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "center",
+        height: 30,
+        marginTop: 10,
+        marginBottom: 4,
     },
     animatedTextContainer: {
-        minWidth: 0, // Adjust this to fit your longest phrase
-        alignItems: 'flex-start',
+        minWidth: 0,
+        alignItems: "flex-start",
     },
 
     // Header
@@ -278,12 +352,18 @@ const styles = StyleSheet.create({
         alignItems: "baseline",
     },
     headerBrand: {
-        fontSize: 22,
-        letterSpacing: -0.2,
+        fontFamily: "FrauncesBold",
+        fontSize: 34, // Larger size
+        lineHeight: 46, // Critical: prevents cutting off tops/bottoms
+        paddingVertical: 4, // Extra buffer for safety
+        letterSpacing: -1.0, // Tighter spacing looks better at large sizes
         color: "#2B2A27",
-        marginTop: 2,
+        paddingLeft: 7,
     },
-    headerMeta: { opacity: 0.6 },
+    headerMeta: {
+        opacity: 0.6,
+        fontSize: 14, // Explicit size helps baseline alignment match the new large text
+    },
 
     // Messages
     listContent: {
@@ -307,24 +387,26 @@ const styles = StyleSheet.create({
         borderColor: "rgba(0,0,0,0.06)",
     },
     userBubble: {
-        backgroundColor: "rgba(110,19,82,0.14)", // plum tint
+        backgroundColor: "rgba(110,19,82,0.14)",
         borderWidth: 1,
         borderColor: "rgba(110,19,82,0.14)",
     },
     bubbleText: { fontSize: 15.5, lineHeight: 20 },
 
-    // Search bar (shared)
+    // Search bar
     searchWrap: {
         width: "100%",
         maxWidth: 520,
         paddingHorizontal: 16,
         paddingTop: 8,
         paddingBottom: 12,
+        // Added these to align the bar and button side-by-side
+        flexDirection: "row",
+        alignItems: "center",
     },
-    searchWrapBottom: {
-        // same spacing; kept for clarity if you want to change later
-    },
+    searchWrapBottom: {},
     searchBar: {
+        flex: 1, // Takes up remaining space next to button
         flexDirection: "row",
         alignItems: "center",
         height: 48,
@@ -333,7 +415,7 @@ const styles = StyleSheet.create({
         borderColor: "rgba(0,0,0,0.12)",
         backgroundColor: "rgba(246,243,232,0.78)",
         paddingLeft: 12,
-        paddingRight: 10,
+        paddingRight: 12, // Balanced padding now that button is out
     },
     searchIcon: {
         fontSize: 16,
@@ -349,22 +431,19 @@ const styles = StyleSheet.create({
     },
     searchBtn: {
         marginLeft: 8,
-        paddingHorizontal: 12,
-        paddingVertical: 9,
-        borderRadius: 16,
+        paddingHorizontal: 16, // Increased slightly for better standalone look
+        height: 48, // Match height of input bar
+        justifyContent: "center",
+        alignItems: "center",
+        borderRadius: 22, // Match border radius of input bar
         backgroundColor: "#2B2A27",
     },
-    // Move these out of the brackets above
-    searchBtnDisabled: { 
-        opacity: 0.35 
-    },
-    searchBtnText: { 
-        color: "#F6F3E8", 
-        fontSize: 14 
-    },
+    searchBtnDisabled: { opacity: 0.35 },
+    searchBtnText: { color: "#F6F3E8", fontSize: 14, fontWeight: "600" },
+
     highlightText: {
         fontWeight: "700",
-        color: "#000000", 
+        color: "#000000",
         paddingHorizontal: 4,
     },
-}); // End of StyleSheet
+});
