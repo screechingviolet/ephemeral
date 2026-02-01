@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, Text, Alert, ActivityIndicator, Modal, TouchableOpacity, ScrollView, Image } from 'react-native';
+import { StyleSheet, View, Text, Alert, ActivityIndicator, Modal, TouchableOpacity, ScrollView, Image, Linking } from 'react-native';
 import MapView, { Marker, Region } from 'react-native-maps';
 import * as Location from 'expo-location';
 import { Colors } from '@/constants/theme';
@@ -340,6 +340,15 @@ export default function MapScreen({
             {/* Action Buttons */}
             <View style={styles.actionButtonsContainer}>
               <TouchableOpacity
+                style={[styles.actionButton, styles.routeButton, { backgroundColor: colors.secondary }]}
+                onPress={() => {
+                  const url = `http://maps.apple.com/?daddr=${selectedEvent.lat},${selectedEvent.lng}`;
+                  Linking.openURL(url);
+                }}
+              >
+                <Text style={[styles.actionButtonText, { color: '#0F0A08' }]}>🧭 Route</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
                 style={[styles.actionButton, styles.remindButton, { backgroundColor: colors.tint }]}
                 onPress={() => {
                   Alert.alert('Reminder Set', 'We\'ll remind you about this moment!');
@@ -415,6 +424,9 @@ actionButton: {
   elevation: 3,
 },
 remindButton: {
+  flex: 1,
+},
+routeButton: {
   flex: 1,
 },
 tipButton: {

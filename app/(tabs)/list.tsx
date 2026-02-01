@@ -17,6 +17,7 @@ import {
   ActivityIndicator,
   Alert,
   Pressable,
+  Linking,
 } from "react-native";
 import * as Location from "expo-location";
 
@@ -323,6 +324,17 @@ export default function EventsScreen() {
                                             label="Tip $5"
                                             buttonStyle={styles.tipButton}
                                         />
+                                        <TouchableOpacity
+                                            style={styles.routeButton}
+                                            onPress={() => {
+                                                const url = `http://maps.apple.com/?daddr=${event.lat},${event.lng}`;
+                                                Linking.openURL(url);
+                                            }}
+                                        >
+                                            <ThemedText style={styles.routeButtonText}>
+                                                🧭 Route
+                                            </ThemedText>
+                                        </TouchableOpacity>
                                     </View>
                                 </View>
                             ))
@@ -524,9 +536,28 @@ const createStyles = (colors: typeof Colors.light | typeof Colors.dark) =>
         tipRow: {
             marginTop: 12,
             alignItems: "center",
+            flexDirection: "row",
+            justifyContent: "center",
+            gap: 10,
         },
         tipButton: {
             minWidth: 140,
+        },
+        routeButton: {
+            minWidth: 110,
+            height: 44,
+            paddingHorizontal: 16,
+            borderRadius: 14,
+            alignItems: "center",
+            justifyContent: "center",
+            backgroundColor: "rgba(81,176,165,0.20)",
+            borderWidth: 1,
+            borderColor: "rgba(81,176,165,0.25)",
+        },
+        routeButtonText: {
+            fontSize: 14,
+            fontWeight: "600",
+            color: "#0F0A08",
         },
         eventMeta: {
             fontSize: 13.5,
