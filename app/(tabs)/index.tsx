@@ -1,11 +1,11 @@
 import React, { useEffect, useRef, useState } from "react";
 import {
   Animated,
-  FlatList,
   ImageBackground,
   KeyboardAvoidingView,
   Platform,
   Pressable,
+  ScrollView,
   StyleSheet,
   TextInput,
   View,
@@ -15,10 +15,8 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 
-type Role = "user" | "assistant";
-type Msg = { id: string; role: Role; text: string };
-
 const PHRASES = [
+    "fleeting moments",
     "temporary art",
     "pop-up stands",
     "live concerts",
@@ -26,7 +24,7 @@ const PHRASES = [
     "street performances",
 ];
 
-// --- MOVED OUTSIDE HOMESCREEN ---
+// --- SearchBar stays outside for stability ---
 type SearchBarProps = {
     bottom?: boolean;
     input: string;
@@ -43,7 +41,7 @@ const SearchBar = ({
     canSend,
 }: SearchBarProps) => (
     <View style={[styles.searchWrap, bottom && styles.searchWrapBottom]}>
-        {/* The Input Pill */}
+        {/* Input pill */}
         <View style={styles.searchBar}>
             <ThemedText style={styles.searchIcon}>⌕</ThemedText>
             <TextInput
@@ -61,7 +59,7 @@ const SearchBar = ({
             />
         </View>
 
-        {/* The Button (Now Outside) */}
+        {/* Button */}
         <Pressable
             onPress={submit}
             disabled={!canSend}
@@ -75,9 +73,10 @@ const SearchBar = ({
 export default function HomeScreen() {
     const insets = useSafeAreaInsets();
 
-    const [phase, setPhase] = useState<"landing" | "chat">("landing");
+    // NEW FLOW: landing -> answer
+    const [phase, setPhase] = useState<"landing" | "answer">("landing");
 
-    // --- ANIMATION LOGIC ---
+    // Landing animation
     const [phraseIndex, setPhraseIndex] = useState(0);
     const fadeAnim = useRef(new Animated.Value(1)).current;
     const slideAnim = useRef(new Animated.Value(0)).current;
@@ -85,7 +84,11 @@ export default function HomeScreen() {
     useEffect(() => {
         if (phase !== "landing") return;
 
-        const cycleAnimation = () => {
+        let isCancelled = false;
+
+        const runCycle = () => {
+            if (isCancelled) return;
+
             Animated.parallel([
                 Animated.timing(fadeAnim, {
                     toValue: 0,
@@ -100,7 +103,6 @@ export default function HomeScreen() {
             ]).start(() => {
                 setPhraseIndex((prev) => (prev + 1) % PHRASES.length);
 
-                // reset below
                 slideAnim.setValue(10);
 
                 Animated.parallel([
@@ -114,33 +116,28 @@ export default function HomeScreen() {
                         duration: 400,
                         useNativeDriver: true,
                     }),
-                ]).start();
+                ]).start(() => {
+                    // wait 5s AFTER animation completes
+                    setTimeout(runCycle, 5000);
+                });
             });
         };
 
-        // optional: wait a bit before the first cycle
-        const startTimeout = setTimeout(() => {
-            cycleAnimation();
-        }, 2500);
-
-        const interval = setInterval(cycleAnimation, 5000);
+        // initial delay before first change
+        const start = setTimeout(runCycle, 5000);
 
         return () => {
-            clearTimeout(startTimeout);
-            clearInterval(interval);
+            isCancelled = true;
+            clearTimeout(start);
         };
     }, [phase]);
 
+    // Input + answer state
     const [input, setInput] = useState("");
-    const [messages, setMessages] = useState<Msg[]>([
-        {
-            id: "a-1",
-            role: "assistant",
-            text: "Try murals near your area—want something colorful or monochrome?",
-        },
-    ]);
+    const [query, setQuery] = useState("");
+    const [answer, setAnswer] = useState("");
+    const [loading, setLoading] = useState(false);
 
-    const listRef = useRef<FlatList<Msg>>(null);
     const canSend = input.trim().length > 0;
 
     const submit = () => {
@@ -148,51 +145,32 @@ export default function HomeScreen() {
 
         const q = input.trim();
         setInput("");
+        setQuery(q);
 
-        if (phase === "landing") setPhase("chat");
+        if (phase === "landing") setPhase("answer");
 
-        setMessages((prev) => [
-            ...prev,
-            { id: `u-${Date.now()}`, role: "user", text: q },
-        ]);
+        setLoading(true);
+        setAnswer("");
 
+        // Mock response (replace with real model call later)
         setTimeout(() => {
-            setMessages((prev) => [
-                ...prev,
-                {
-                    id: `a-${Date.now()}`,
-                    role: "assistant",
-                    text: "Want something nearby, or are you open to traveling a bit?",
-                },
-            ]);
-            requestAnimationFrame(() =>
-                listRef.current?.scrollToEnd({ animated: true }),
+            setLoading(false);
+            setAnswer(
+                `Here are a few ideas inspired by “${q}”:\n\n` +
+                    `• A mural corridor or street-art block nearby\n` +
+                    `• A pop-up market or stand this weekend\n` +
+                    `• A small gallery opening (often free) with live music\n\n` +
+                    `Want walking distance only, or are you open to a short bus ride?`,
             );
-        }, 400);
-
-        requestAnimationFrame(() =>
-            listRef.current?.scrollToEnd({ animated: true }),
-        );
+        }, 450);
     };
 
-    const renderBubble = ({ item }: { item: Msg }) => {
-        const isUser = item.role === "user";
-        return (
-            <View
-                style={[styles.row, isUser ? styles.rowRight : styles.rowLeft]}
-            >
-                <View
-                    style={[
-                        styles.bubble,
-                        isUser ? styles.userBubble : styles.assistantBubble,
-                    ]}
-                >
-                    <ThemedText style={styles.bubbleText}>
-                        {item.text}
-                    </ThemedText>
-                </View>
-            </View>
-        );
+    const resetToLanding = () => {
+        setPhase("landing");
+        setInput("");
+        setQuery("");
+        setAnswer("");
+        setLoading(false);
     };
 
     // ---------- LANDING ----------
@@ -251,6 +229,7 @@ export default function HomeScreen() {
                             ever-changing city.
                         </ThemedText>
 
+                        {/* Original textbox stays on landing */}
                         <SearchBar
                             input={input}
                             setInput={setInput}
@@ -263,7 +242,7 @@ export default function HomeScreen() {
         );
     }
 
-    // ---------- CHAT ----------
+    // ---------- ANSWER (full-page response, no textbox) ----------
     return (
         <ImageBackground
             source={require("@/assets/images/bg.png")}
@@ -271,34 +250,56 @@ export default function HomeScreen() {
             resizeMode="cover"
         >
             <ThemedView
-                style={[styles.screen, { backgroundColor: "transparent" }]}
+                style={styles.screen}
+                lightColor="transparent"
+                darkColor="transparent"
             >
+                {/* Header */}
                 <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
-                    <ThemedText style={styles.headerBrand}>ephemeral</ThemedText>
+                    <ThemedText style={styles.headerBrand}>
+                        ephemeral
+                    </ThemedText>
+
+                    <Pressable
+                        onPress={resetToLanding}
+                        style={styles.askAnotherBtn}
+                    >
+                        <ThemedText style={styles.askAnotherText}>
+                            Ask another
+                        </ThemedText>
+                    </Pressable>
                 </View>
 
-                <FlatList
-                    ref={listRef}
-                    data={messages}
-                    keyExtractor={(m) => m.id}
-                    renderItem={renderBubble}
-                    contentContainerStyle={styles.listContent}
-                    style={{ backgroundColor: "transparent" }}
-                    onContentSizeChange={() =>
-                        listRef.current?.scrollToEnd({ animated: true })
-                    }
-                />
+                {/* Full-page answer */}
+                <View style={styles.answerOuter}>
+                    <ScrollView
+                        style={styles.answerScroll}
+                        contentContainerStyle={styles.answerScrollContent}
+                        showsVerticalScrollIndicator={false}
+                    >
+                        {!!query && (
+                            <ThemedText style={styles.answerPrompt}>
+                                You asked: {query}
+                            </ThemedText>
+                        )}
+
+                        {loading ? (
+                            <ThemedText style={styles.answerLoading}>
+                                Thinking…
+                            </ThemedText>
+                        ) : (
+                            <ThemedText style={styles.answerText}>
+                                {answer}
+                            </ThemedText>
+                        )}
+                    </ScrollView>
+                </View>
+
+                {/* Optional: keep a bottom bar for “ask another” feel (currently hidden).
+            If you want it, I can add a “New question” bottom button instead. */}
                 <KeyboardAvoidingView
                     behavior={Platform.OS === "ios" ? "padding" : undefined}
-                >
-                    <SearchBar
-                        bottom
-                        input={input}
-                        setInput={setInput}
-                        submit={submit}
-                        canSend={canSend}
-                    />
-                </KeyboardAvoidingView>
+                />
             </ThemedView>
         </ImageBackground>
     );
@@ -342,6 +343,11 @@ const styles = StyleSheet.create({
         minWidth: 0,
         alignItems: "flex-start",
     },
+    highlightText: {
+        fontWeight: "700",
+        color: "#000000",
+        paddingHorizontal: 4,
+    },
 
     // Header
     header: {
@@ -353,60 +359,80 @@ const styles = StyleSheet.create({
     },
     headerBrand: {
         fontFamily: "FrauncesBold",
-        fontSize: 34, // Larger size
-        lineHeight: 46, // Critical: prevents cutting off tops/bottoms
-        paddingVertical: 4, // Extra buffer for safety
-        letterSpacing: -1.0, // Tighter spacing looks better at large sizes
+        fontSize: 34,
+        lineHeight: 46,
+        paddingVertical: 4,
+        letterSpacing: -1.0,
         color: "#2B2A27",
         paddingLeft: 7,
     },
-    headerMeta: {
-        opacity: 0.6,
-        fontSize: 14, // Explicit size helps baseline alignment match the new large text
-    },
 
-    // Messages
-    listContent: {
-        paddingHorizontal: 14,
-        paddingVertical: 10,
-        gap: 10,
-    },
-    row: { width: "100%", flexDirection: "row" },
-    rowLeft: { justifyContent: "flex-start" },
-    rowRight: { justifyContent: "flex-end" },
-
-    bubble: {
-        maxWidth: "82%",
-        borderRadius: 18,
-        paddingVertical: 10,
+    askAnotherBtn: {
         paddingHorizontal: 12,
-    },
-    assistantBubble: {
-        backgroundColor: "rgba(246,243,232,0.85)",
+        paddingVertical: 8,
+        borderRadius: 999,
+        backgroundColor: "rgba(246,243,232,0.72)",
         borderWidth: 1,
-        borderColor: "rgba(0,0,0,0.06)",
+        borderColor: "rgba(0,0,0,0.08)",
     },
-    userBubble: {
-        backgroundColor: "rgba(110,19,82,0.14)",
-        borderWidth: 1,
-        borderColor: "rgba(110,19,82,0.14)",
+    askAnotherText: {
+        fontSize: 13,
+        color: "#2B2A27",
+        opacity: 0.85,
+        fontWeight: "600",
     },
-    bubbleText: { fontSize: 15.5, lineHeight: 20 },
 
-    // Search bar
+    // Answer screen
+    answerOuter: {
+        flex: 1,
+        paddingHorizontal: 16,
+        paddingBottom: 18,
+    },
+    answerScroll: {
+        flex: 1,
+    },
+    answerScrollContent: {
+        paddingTop: 12,
+        paddingBottom: 24,
+    },
+    answerPrompt: {
+        fontSize: 14,
+        opacity: 0.65,
+        marginBottom: 10,
+        color: "#2B2A27",
+    },
+    answerLoading: {
+        fontSize: 18,
+        opacity: 0.65,
+        textAlign: "center",
+        marginTop: 24,
+        color: "#2B2A27",
+    },
+    answerText: {
+        fontFamily: "Fraunces",
+        fontSize: 16,
+        lineHeight: 26,
+        color: "#2B2A27",
+        backgroundColor: "rgba(246,243,232,0.72)",
+        borderRadius: 24,
+        padding: 18,
+        borderWidth: 1,
+        borderColor: "rgba(0,0,0,0.08)",
+    },
+
+    // Search bar (pill + outside button)
     searchWrap: {
         width: "100%",
         maxWidth: 520,
         paddingHorizontal: 16,
         paddingTop: 8,
         paddingBottom: 12,
-        // Added these to align the bar and button side-by-side
         flexDirection: "row",
         alignItems: "center",
     },
     searchWrapBottom: {},
     searchBar: {
-        flex: 1, // Takes up remaining space next to button
+        flex: 1,
         flexDirection: "row",
         alignItems: "center",
         height: 48,
@@ -415,7 +441,7 @@ const styles = StyleSheet.create({
         borderColor: "rgba(0,0,0,0.12)",
         backgroundColor: "rgba(246,243,232,0.78)",
         paddingLeft: 12,
-        paddingRight: 12, // Balanced padding now that button is out
+        paddingRight: 12,
     },
     searchIcon: {
         fontSize: 16,
@@ -431,19 +457,13 @@ const styles = StyleSheet.create({
     },
     searchBtn: {
         marginLeft: 8,
-        paddingHorizontal: 16, // Increased slightly for better standalone look
-        height: 48, // Match height of input bar
+        paddingHorizontal: 16,
+        height: 48,
         justifyContent: "center",
         alignItems: "center",
-        borderRadius: 22, // Match border radius of input bar
+        borderRadius: 22,
         backgroundColor: "#2B2A27",
     },
     searchBtnDisabled: { opacity: 0.35 },
     searchBtnText: { color: "#F6F3E8", fontSize: 14, fontWeight: "600" },
-
-    highlightText: {
-        fontWeight: "700",
-        color: "#000000",
-        paddingHorizontal: 4,
-    },
 });

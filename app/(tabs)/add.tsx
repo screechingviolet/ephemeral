@@ -289,6 +289,7 @@ export default function AddEventScreen() {
                         setEndTime("");
                         setIsNow(false);
                         setImageAsset(null);
+                        setPaymentAccount("");
                     },
                 },
             ]);
