@@ -286,18 +286,16 @@ export default function MapScreen() {
                 <Text style={styles.actionButtonText}>🔔 Remind Me</Text>
               </TouchableOpacity>
 
-              <TouchableOpacity
-                style={[styles.actionButton, styles.tipButton, { backgroundColor: colors.icon }]}
-                onPress={() => {
-                  Alert.alert('Tip', 'Tip feature coming soon!');
-                  setModalVisible(false);
-                }}
-              >
-                <Text style={[styles.actionButtonText, { color: '#0F0A08' }]}>💵</Text>
-              </TouchableOpacity>
-              {/*<View style={styles.tipButtonWrap}>
-                     <TipButton recipientId={selectedEvent.recipient_id} label="Tip $5" />
-                   </View>*/}
+              <TipButton
+                recipientId={selectedEvent.recipient_id}
+                label="💵"
+                buttonStyle={[
+                  styles.actionButton,
+                  styles.tipButton,
+                  { backgroundColor: colors.icon },
+                ]}
+                textStyle={[styles.actionButtonText, { color: '#0F0A08' }]}
+              />
             </View>
           </>
         )}
@@ -532,9 +530,6 @@ actionButtonText: {
     fontSize: 17,
     fontWeight: '600',
     color: '#FFF',
-  },
-  tipButtonWrap: {
-    marginTop: 12,
   },
 });
 

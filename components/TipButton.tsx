@@ -1,6 +1,14 @@
 import { useStripe } from "@stripe/stripe-react-native";
-import React, { useState } from "react";
-import { Alert, Pressable, StyleSheet, Text } from "react-native";
+import React, { ReactNode, useState } from "react";
+import {
+    Alert,
+    Pressable,
+    StyleSheet,
+    Text,
+    type StyleProp,
+    type TextStyle,
+    type ViewStyle,
+} from "react-native";
 
 import {
     DEFAULT_TIP_AMOUNT_CENTS,
@@ -12,12 +20,18 @@ type TipButtonProps = {
     recipientId?: string | null;
     amountCents?: number;
     label?: string;
+    buttonStyle?: StyleProp<ViewStyle>;
+    textStyle?: StyleProp<TextStyle>;
+    children?: ReactNode;
 };
 
 export default function TipButton({
     recipientId,
     amountCents = DEFAULT_TIP_AMOUNT_CENTS,
     label = "Tip $5",
+    buttonStyle,
+    textStyle,
+    children,
 }: TipButtonProps) {
     const { initPaymentSheet, presentPaymentSheet } = useStripe();
     const [loading, setLoading] = useState(false);
@@ -84,20 +98,28 @@ export default function TipButton({
 
     return (
         <Pressable
-            style={[styles.button, loading && styles.buttonDisabled]}
+            style={[
+                styles.button,
+                buttonStyle,
+                loading && styles.buttonDisabled,
+            ]}
             onPress={handleTip}
             disabled={loading}
         >
-            <Text style={styles.buttonText}>
-                {loading ? "Processing..." : label}
-            </Text>
+            {children ? (
+                children
+            ) : (
+                <Text style={[styles.buttonText, textStyle]}>
+                    {loading ? "Processing..." : label}
+                </Text>
+            )}
         </Pressable>
     );
 }
 
 const styles = StyleSheet.create({
     button: {
-        height: 44,
+        minHeight: 44,
         paddingHorizontal: 16,
         borderRadius: 14,
         backgroundColor: "#2B2A27",

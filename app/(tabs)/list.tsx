@@ -306,10 +306,11 @@ export default function EventsScreen() {
                                     </View>
 
                                     <View style={styles.tipRow}>
-                                        {/*<TipButton
+                                        <TipButton
                                             recipientId={event.recipient_id}
                                             label="Tip $5"
-                                        />*/}
+                                            buttonStyle={styles.tipButton}
+                                        />
                                     </View>
                                 </View>
                             ))
@@ -492,7 +493,10 @@ const createStyles = (colors: typeof Colors.light | typeof Colors.dark) =>
         },
         tipRow: {
             marginTop: 12,
-            alignItems: "flex-start",
+            alignItems: "center",
+        },
+        tipButton: {
+            minWidth: 140,
         },
         eventMeta: {
             fontSize: 13.5,
