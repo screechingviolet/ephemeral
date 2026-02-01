@@ -134,7 +134,7 @@ export default function EventsScreen() {
                 >
                     {/* Header */}
                     <View style={styles.header}>
-                        <ThemedText style={styles.title}>Events</ThemedText>
+                        <ThemedText style={styles.title}>Moments</ThemedText>
                         <ThemedText style={styles.subtitle}>
                             Discover what’s happening nearby
                         </ThemedText>
@@ -149,7 +149,7 @@ export default function EventsScreen() {
                                     styles.searchInput,
                                     { color: colors.text },
                                 ]}
-                                placeholder="Search events..."
+                                placeholder="Search moments..."
                                 placeholderTextColor="#8E8A83"
                                 value={searchQuery}
                                 onChangeText={setSearchQuery}
