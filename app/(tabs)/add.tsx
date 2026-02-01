@@ -2,6 +2,7 @@ import LocationPicker from "@/components/LocationPicker";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { Colors } from "@/constants/theme";
+import { DEMO_CONNECT_ACCOUNT_ID } from "@/constants/payments";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import * as ImagePicker from "expo-image-picker";
 import { useState } from "react";
@@ -49,6 +50,7 @@ export default function AddEventScreen() {
     const [venue, setVenue] = useState("");
     const [organizer, setOrganizer] = useState("");
     const [contactEmail, setContactEmail] = useState("");
+    const [paymentAccount, setPaymentAccount] = useState("");
 
     const parseTimeToEpochSeconds = (
         dateText: string,
@@ -205,6 +207,7 @@ export default function AddEventScreen() {
             start_time: startTimestamp,
             end_time: endTimestamp,
             image_keys: [],
+            recipient_id: DEMO_CONNECT_ACCOUNT_ID,
         };
 
         try {
@@ -286,6 +289,7 @@ export default function AddEventScreen() {
                         setEndTime("");
                         setIsNow(false);
                         setImageAsset(null);
+                        setPaymentAccount("");
                     },
                 },
             ]);
@@ -610,6 +614,24 @@ export default function AddEventScreen() {
                             />
                         </View>*/}
 
+                        {/* Payment Account (Demo only) */}
+                        <View style={styles.inputGroup}>
+                            <ThemedText style={styles.label}>
+                                Payment Account (optional)
+                            </ThemedText>
+                            <TextInput
+                                style={[styles.input, { color: colors.text }]}
+                                placeholder="Enter Stripe account ID"
+                                placeholderTextColor="#8E8A83"
+                                value={paymentAccount}
+                                onChangeText={setPaymentAccount}
+                            />
+                            <ThemedText style={styles.helperText}>
+                                Demo note: tips route to a preconfigured account
+                                for the hackathon.
+                            </ThemedText>
+                        </View>
+
                         {/* Submit Button */}
                         <TouchableOpacity
                             style={[
@@ -878,6 +900,12 @@ const createStyles = (colors: typeof Colors.light | typeof Colors.dark) =>
             fontSize: 13,
             opacity: 0.6,
             textAlign: "center",
+            color: "#35332F",
+        },
+        helperText: {
+            marginTop: 8,
+            fontSize: 12,
+            opacity: 0.7,
             color: "#35332F",
         },
     });
