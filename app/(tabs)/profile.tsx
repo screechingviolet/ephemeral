@@ -57,9 +57,7 @@ export default function ProfileScreen() {
             style={styles.background}
             resizeMode="cover"
         >
-            <ScrollView style={styles.scrollView}
-            contentContainerStyle={{ paddingBottom: 60 }}
-            >
+            <ScrollView style={styles.scrollView}>
                 <ThemedView style={[styles.container, { backgroundColor: 'transparent' }]}>
                     <ThemedText style={styles.title}>
                         {isSignUp ? "Sign Up" : "Login"}
@@ -142,6 +140,7 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     container: {
+        flex: 1,
         paddingHorizontal: 20,
         paddingTop: 70,
     },
@@ -149,7 +148,6 @@ const styles = StyleSheet.create({
         fontFamily: "FrauncesBold",
         fontSize: 40,
         letterSpacing: -0.3,
-        lineHeight: 48,
         color: "#2B2A27",
         textAlign: "center",
         marginBottom: 8,
@@ -165,7 +163,6 @@ const styles = StyleSheet.create({
         width: "100%",
         maxWidth: 400,
         alignSelf: "center",
-        paddingBottom: 40,
     },
     inputWrapper: {
         marginBottom: 16,
