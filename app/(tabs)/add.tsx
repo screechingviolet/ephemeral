@@ -198,7 +198,7 @@ export default function AddEventScreen() {
         const eventData = {
             name: title.trim(),
             description: description.trim() || null,
-            tags: selectedCategory ? [selectedCategory] : [],
+            category: selectedCategory,
             vibes: [],
             lat: latitude,
             lng: longitude,

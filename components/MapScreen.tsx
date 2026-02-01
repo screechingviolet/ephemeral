@@ -1,103 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, Text, Alert, ActivityIndicator, Modal, TouchableOpacity, ScrollView } from 'react-native';
-import MapView, { Marker, Region, PROVIDER_DEFAULT } from 'react-native-maps';
+import MapView, { Marker, Region } from 'react-native-maps';
 import * as Location from 'expo-location';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 
 interface Event {
-  id: number;
-  title: string;
+  event_id: string;
+  name: string;
   category: string;
-  // location: string;
-  date: string;
-  time: string;
-  endtime: string;
+  location?: string;
+  start_time: number;
+  end_time?: number;
   description: string;
-  latitude: number;
-  longitude: number;
+  lat: number;
+  lng: number;
+  _distance_m?: number;
 }
 
-// Hardcoded events near Warwick, RI
-const MOCK_EVENTS: Event[] = [
-  {
-    id: 1,
-    title: 'Summer Jazz Festival',
-    category: 'Free Entry - Tip Optional',
-    location: 'Providence',
-    date: 'Feb 15, 2026',
-    time: '7:00 PM',
-    description: 'Live jazz performances under the stars featuring local musicians',
-    latitude: 41.8240,
-    longitude: -71.4128,
-  },
-  {
-    id: 2,
-    title: 'Tech Innovation Summit',
-    category: 'Ticketed',
-    location: 'Warwick',
-    date: 'Feb 20, 2026',
-    time: '9:00 AM',
-    description: 'Leading tech innovators discuss the future of technology',
-    latitude: 41.7001,
-    longitude: -71.4162,
-  },
-  {
-    id: 3,
-    title: 'Local Farmers Market',
-    category: 'Free Entry - No Payment',
-    location: 'Newport',
-    date: 'Feb 8, 2026',
-    time: '8:00 AM',
-    description: 'Fresh produce and local artisan goods every weekend',
-    latitude: 41.4901,
-    longitude: -71.3128,
-  },
-  {
-    id: 4,
-    title: 'Art Gallery Opening',
-    category: 'Free - Tip Optional',
-    location: 'Providence',
-    date: 'Feb 12, 2026',
-    time: '6:00 PM',
-    description: 'Contemporary art exhibition featuring local artists',
-    latitude: 41.8230,
-    longitude: -71.4220,
-  },
-  {
-    id: 5,
-    title: 'Live Music Night',
-    category: 'Ticketed',
-    location: 'Warwick',
-    date: 'Feb 16, 2026',
-    time: '8:00 PM',
-    description: 'Local bands and acoustic performances in an intimate setting',
-    latitude: 41.7100,
-    longitude: -71.4200,
-  },
-  {
-    id: 6,
-    title: 'Leftover Flower Bouquets',
-    category: 'After-Hours Sale',
-    location: 'Warwick',
-    date: 'Feb 14, 2026',
-    time: '8:00 PM',
-    description: 'Selling for $2 each!',
-    latitude: 41.8000,
-    longitude: -71.4200,
-  },
-  {
-    id: 7,
-    title: 'Violinist Performance',
-    category: 'Tip Optional',
-    location: 'Warwick',
-    date: 'Feb 16, 2026',
-    time: '8:00 PM',
-    description: 'Playing on the street corner. Come by and watch :)',
-    latitude: 41.7100,
-    longitude: -71.5000,
-  }
-];
+const API_BASE_URL = 'http://localhost:8000';
 
 export default function MapScreen() {
   const colorScheme = useColorScheme();
@@ -107,10 +28,18 @@ export default function MapScreen() {
   const [loading, setLoading] = useState<boolean>(true);
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [modalVisible, setModalVisible] = useState<boolean>(false);
+  const [events, setEvents] = useState<Event[]>([]);
+  const [fetchingEvents, setFetchingEvents] = useState<boolean>(false);
 
   useEffect(() => {
     getUserLocation();
   }, []);
+
+  useEffect(() => {
+    if (location) {
+      fetchNearbyEvents(location.latitude, location.longitude);
+    }
+  }, [location]);
 
   const getUserLocation = async (): Promise<void> => {
     try {
@@ -145,6 +74,54 @@ export default function MapScreen() {
       Alert.alert('Error', 'Failed to get your location');
       setLoading(false);
     }
+  };
+
+  const fetchNearbyEvents = async (lat: number, lng: number): Promise<void> => {
+    setFetchingEvents(true);
+    try {
+      // Fetch events within 10km radius
+      const response = await fetch(
+        `${API_BASE_URL}/events/nearby?lat=${lat}&lng=${lng}&radius_m=4500&limit=50&sort=distance`
+      );
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch events');
+      }
+
+      const data: Event[] = await response.json();
+      setEvents(data);
+    } catch (error) {
+      console.error('Error fetching events:', error);
+      Alert.alert('Error', 'Failed to load nearby events');
+    } finally {
+      setFetchingEvents(false);
+    }
+  };
+
+  const formatDate = (timestamp: number): string => {
+    const date = new Date(timestamp * 1000);
+    return date.toLocaleDateString('en-US', { 
+      month: 'short', 
+      day: 'numeric', 
+      year: 'numeric' 
+    });
+  };
+
+  const formatTime = (timestamp: number): string => {
+    const date = new Date(timestamp * 1000);
+    return date.toLocaleTimeString('en-US', { 
+      hour: 'numeric', 
+      minute: '2-digit',
+      hour12: true 
+    });
+  };
+
+  const formatDistance = (meters?: number): string => {
+    if (!meters) return '';
+    if (meters < 1000) {
+      return `${Math.round(meters)}m away`;
+    }
+    return `${(meters / 1000).toFixed(1)}km away`;
   };
 
   if (loading) {
@@ -189,17 +166,17 @@ export default function MapScreen() {
         </Marker>
 
         {/* Event markers */}
-        {MOCK_EVENTS.map((event, index) => {
+        {events.map((event, index) => {
           // Cycle through our retro colors for markers
           const markerColors = ['#E98E58', '#AC515F', '#6E1352', '#B9D3C2'];
           const markerColor = markerColors[index % markerColors.length];
           
           return (
             <Marker
-              key={event.id}
+              key={event.event_id}
               coordinate={{
-                latitude: event.latitude,
-                longitude: event.longitude,
+                latitude: event.lat,
+                longitude: event.lng,
               }}
               onPress={() => {
                 setSelectedEvent(event);
@@ -210,7 +187,7 @@ export default function MapScreen() {
                 {/* Title box */}
                 <View style={[styles.eventTitleBox, { backgroundColor: colors.background }]}>
                   <Text style={[styles.eventTitleText, { color: colors.text }]} numberOfLines={1}>
-                    {event.title}
+                    {event.name}
                   </Text>
                 </View>
                 {/* Arrow marker */}
@@ -225,91 +202,102 @@ export default function MapScreen() {
 
       <View style={[styles.infoBox, { backgroundColor: colors.background }]}>
         <Text style={[styles.infoText, { color: colors.text }]}>
-          📍 {MOCK_EVENTS.length} moments nearby
+          {fetchingEvents ? 'Loading...' : `${events.length} moments nearby`}
         </Text>
       </View>
 
       {/* Event Detail Modal */}
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={modalVisible}
-        onRequestClose={() => setModalVisible(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={[styles.modalContent, { backgroundColor: colors.background }]}>
-            <ScrollView showsVerticalScrollIndicator={false}>
-              {selectedEvent && (
-                <>
-                  <View style={styles.modalHeader}>
-                    <Text style={[styles.modalTitle, { color: colors.text }]}>
-                      {selectedEvent.title}
-                    </Text>
-                    <TouchableOpacity
-                      onPress={() => setModalVisible(false)}
-                      style={styles.closeButton}
-                    >
-                      <Text style={styles.closeButtonText}>✕</Text>
-                    </TouchableOpacity>
-                  </View>
+<Modal
+  animationType="slide"
+  transparent={true}
+  visible={modalVisible}
+  onRequestClose={() => setModalVisible(false)}
+>
+  <View style={styles.modalOverlay}>
+    <View style={[styles.modalContent, { backgroundColor: colors.background }]}>
+      <ScrollView showsVerticalScrollIndicator={false}>
+        {selectedEvent && (
+          <>
+            <View style={styles.modalHeader}>
+              <Text style={[styles.modalTitle, { color: colors.text }]}>
+                {selectedEvent.name}
+              </Text>
+              <TouchableOpacity
+                onPress={() => setModalVisible(false)}
+                style={styles.closeButton}
+              >
+                <Text style={styles.closeButtonText}>✕</Text>
+              </TouchableOpacity>
+            </View>
+            <View style={[styles.categoryBadge, { backgroundColor: colors.accent }]}>
+              <Text style={styles.categoryText}>{selectedEvent.category}</Text>
+            </View>
+            {selectedEvent._distance_m && (
+              <View style={styles.modalSection}>
+                <Text style={[styles.modalLabel, { color: colors.text, opacity: 0.7 }]}>
+                  📍 Distance
+                </Text>
+                <Text style={[styles.modalValue, { color: colors.text }]}>
+                  {formatDistance(selectedEvent._distance_m)}
+                </Text>
+              </View>
+            )}
+            <View style={styles.modalRow}>
+              <View style={[styles.modalSection, { flex: 1 }]}>
+                <Text style={[styles.modalLabel, { color: colors.text, opacity: 0.7 }]}>
+                  Date
+                </Text>
+                <Text style={[styles.modalValue, { color: colors.text }]}>
+                  {formatDate(selectedEvent.start_time)}
+                </Text>
+              </View>
+              <View style={[styles.modalSection, { flex: 1 }]}>
+                <Text style={[styles.modalLabel, { color: colors.text, opacity: 0.7 }]}>
+                  Time
+                </Text>
+                <Text style={[styles.modalValue, { color: colors.text }]}>
+                  {formatTime(selectedEvent.start_time)}
+                  {selectedEvent.end_time && ` - ${formatTime(selectedEvent.end_time)}`}
+                </Text>
+              </View>
+            </View>
+            <View style={styles.modalSection}>
+              <Text style={[styles.modalLabel, { color: colors.text, opacity: 0.7 }]}>
+                About
+              </Text>
+              <Text style={[styles.modalDescription, { color: colors.text }]}>
+                {selectedEvent.description}
+              </Text>
+            </View>
 
-                  <View style={[styles.categoryBadge, { backgroundColor: colors.accent }]}>
-                    <Text style={styles.categoryText}>{selectedEvent.category}</Text>
-                  </View>
+            {/* Action Buttons */}
+            <View style={styles.actionButtonsContainer}>
+              <TouchableOpacity
+                style={[styles.actionButton, styles.remindButton, { backgroundColor: colors.tint }]}
+                onPress={() => {
+                  Alert.alert('Reminder Set', 'We\'ll remind you about this moment!');
+                  setModalVisible(false);
+                }}
+              >
+                <Text style={styles.actionButtonText}>🔔 Remind Me</Text>
+              </TouchableOpacity>
 
-                  <View style={styles.modalSection}>
-                    <Text style={[styles.modalLabel, { color: colors.text, opacity: 0.7 }]}>
-                      Location
-                    </Text>
-                    <Text style={[styles.modalValue, { color: colors.text }]}>
-                      {selectedEvent.location}
-                    </Text>
-                  </View>
-
-                  <View style={styles.modalRow}>
-                    <View style={[styles.modalSection, { flex: 1 }]}>
-                      <Text style={[styles.modalLabel, { color: colors.text, opacity: 0.7 }]}>
-                        Date
-                      </Text>
-                      <Text style={[styles.modalValue, { color: colors.text }]}>
-                        {selectedEvent.date}
-                      </Text>
-                    </View>
-
-                    <View style={[styles.modalSection, { flex: 1 }]}>
-                      <Text style={[styles.modalLabel, { color: colors.text, opacity: 0.7 }]}>
-                        Time
-                      </Text>
-                      <Text style={[styles.modalValue, { color: colors.text }]}>
-                        {selectedEvent.time}
-                      </Text>
-                    </View>
-                  </View>
-
-                  <View style={styles.modalSection}>
-                    <Text style={[styles.modalLabel, { color: colors.text, opacity: 0.7 }]}>
-                      About
-                    </Text>
-                    <Text style={[styles.modalDescription, { color: colors.text }]}>
-                      {selectedEvent.description}
-                    </Text>
-                  </View>
-
-                  <TouchableOpacity
-                    style={[styles.attendButton, { backgroundColor: colors.tint }]}
-                    onPress={() => {
-                      Alert.alert('Success', 'You\'re interested in this moment!');
-                      setModalVisible(false);
-                    }}
-                  >
-                    <Text style={styles.attendButtonText}>I'm Interested</Text>
-                  </TouchableOpacity>
-                </>
-              )}
-            </ScrollView>
-          </View>
-        </View>
-      </Modal>
+              <TouchableOpacity
+                style={[styles.actionButton, styles.tipButton, { backgroundColor: colors.icon }]}
+                onPress={() => {
+                  Alert.alert('Tip', 'Tip feature coming soon!');
+                  setModalVisible(false);
+                }}
+              >
+                <Text style={[styles.actionButtonText, { color: '#0F0A08' }]}>💵</Text>
+              </TouchableOpacity>
+            </View>
+          </>
+        )}
+      </ScrollView>
+    </View>
+  </View>
+</Modal>
     </View>
   );
 }
@@ -343,6 +331,33 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#FF3B30',
   },
+  actionButtonsContainer: {
+  flexDirection: 'row',
+  gap: 12,
+  marginTop: 8,
+},
+actionButton: {
+  paddingVertical: 16,
+  borderRadius: 12,
+  alignItems: 'center',
+  shadowColor: '#000',
+  shadowOffset: { width: 0, height: 2 },
+  shadowOpacity: 0.1,
+  shadowRadius: 4,
+  elevation: 3,
+},
+remindButton: {
+  flex: 1,
+},
+tipButton: {
+  width: 60,
+  justifyContent: 'center',
+},
+actionButtonText: {
+  fontSize: 17,
+  fontWeight: '600',
+  color: '#FFF',
+},
   infoBox: {
     position: 'absolute',
     top: 50,
