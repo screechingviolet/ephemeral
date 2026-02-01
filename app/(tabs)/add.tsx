@@ -1,7 +1,9 @@
+import LocationPicker from "@/components/LocationPicker";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { Colors } from "@/constants/theme";
 import { useColorScheme } from "@/hooks/use-color-scheme";
+import * as ImagePicker from "expo-image-picker";
 import { useState } from "react";
 import {
   Alert,
@@ -13,9 +15,6 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import LocationPicker from '@/components/LocationPicker';
-import * as ImagePicker from "expo-image-picker";
-
 
 const CATEGORIES = [
     "Free",
@@ -24,8 +23,8 @@ const CATEGORIES = [
     "House Sale",
     "After-Hours Sale",
     "Popup Vendor",
-    "Other Moment"
-    ];
+    "Other Moment",
+];
 
 const LOCATIONS = ["Providence", "Warwick", "Newport", "Other"];
 
@@ -44,7 +43,8 @@ export default function AddEventScreen() {
     const [startTime, setStartTime] = useState("");
     const [endTime, setEndTime] = useState("");
     const [isNow, setIsNow] = useState(false);
-    const [imageAsset, setImageAsset] = useState<ImagePicker.ImagePickerAsset | null>(null);
+    const [imageAsset, setImageAsset] =
+        useState<ImagePicker.ImagePickerAsset | null>(null);
     const [submitting, setSubmitting] = useState(false);
     const [venue, setVenue] = useState("");
     const [organizer, setOrganizer] = useState("");
@@ -54,7 +54,9 @@ export default function AddEventScreen() {
         dateText: string,
         timeText: string,
     ): number | null => {
-        const dateMatch = dateText.trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+        const dateMatch = dateText
+            .trim()
+            .match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
         if (!dateMatch) return null;
         const month = Number(dateMatch[1]) - 1;
         const day = Number(dateMatch[2]);
@@ -80,7 +82,8 @@ export default function AddEventScreen() {
 
     const takePhoto = async () => {
         try {
-            const permission = await ImagePicker.requestCameraPermissionsAsync();
+            const permission =
+                await ImagePicker.requestCameraPermissionsAsync();
             if (!permission.granted) {
                 Alert.alert(
                     "Camera Permission",
@@ -152,8 +155,11 @@ export default function AddEventScreen() {
         //     return;
         // }
         if (!latitude || !longitude) {
-          Alert.alert('Missing Information', 'Please select a location on the map');
-          return;
+            Alert.alert(
+                "Missing Information",
+                "Please select a location on the map",
+            );
+            return;
         }
         if (!imageAsset) {
             Alert.alert("Missing Information", "Please take a photo.");
@@ -173,7 +179,6 @@ export default function AddEventScreen() {
                 return;
             }
         }
-        
 
         const startTimestamp = isNow
             ? Math.floor(Date.now() / 1000)
@@ -314,7 +319,9 @@ export default function AddEventScreen() {
                 >
                     {/* Header (same vibe as Events page) */}
                     <View style={styles.header}>
-                        <ThemedText style={styles.title}>Create a Moment</ThemedText>
+                        <ThemedText style={styles.title}>
+                            Create a Moment
+                        </ThemedText>
                         <ThemedText style={styles.subtitle}>
                             What's happening in your community?
                         </ThemedText>
@@ -336,18 +343,15 @@ export default function AddEventScreen() {
                             />
                         </View>
 
-                        
-
                         {/* Location Picker with Map */}
                         <LocationPicker
-                          onLocationSelect={(lat, lng, addr) => {
-                            setLatitude(lat);
-                            setLongitude(lng);
-                          }}
-                          initialLatitude={latitude || undefined}
-                          initialLongitude={longitude || undefined}
+                            onLocationSelect={(lat, lng, addr) => {
+                                setLatitude(lat);
+                                setLongitude(lng);
+                            }}
+                            initialLatitude={latitude || undefined}
+                            initialLongitude={longitude || undefined}
                         />
-
 
                         {/* Time */}
                         <View style={styles.inputGroup}>
@@ -490,8 +494,6 @@ export default function AddEventScreen() {
                                 ))}
                             </View>
                         </View>
-
-                        
 
                         {/* Description */}
                         <View style={styles.inputGroup}>
@@ -664,8 +666,8 @@ const createStyles = (colors: typeof Colors.light | typeof Colors.dark) =>
             color: "#2B2A27",
         },
         subtitle: {
-            fontFamily: "FrauncesSemiBold",
-            fontSize: 18,
+            fontFamily: "Fraunces",
+            fontSize: 16,
             lineHeight: 24,
             opacity: 0.75,
             marginTop: 6,

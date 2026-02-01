@@ -318,8 +318,8 @@ const createStyles = (colors: typeof Colors.light | typeof Colors.dark) =>
             color: "#2B2A27",
         },
         subtitle: {
-            fontFamily: "FrauncesSemiBold",
-            fontSize: 18,
+            fontFamily: "Fraunces",
+            fontSize: 16,
             lineHeight: 24,
             opacity: 0.75,
             marginTop: 6,
