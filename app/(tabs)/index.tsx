@@ -162,7 +162,7 @@ export default function HomeScreen() {
     if (phase === "landing") {
         return (
         <ImageBackground
-            source={require("@/assets/images/bg.png")}
+            source={require("@/assets/images/ephemeral_home_background.png")}
             style={styles.screen}
             resizeMode="cover"
         >
