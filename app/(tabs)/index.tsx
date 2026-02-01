@@ -431,11 +431,17 @@ const styles = StyleSheet.create({
     },
     searchBtn: {
         marginLeft: 8,
+<<<<<<< HEAD
         paddingHorizontal: 16, // Increased slightly for better standalone look
         height: 48, // Match height of input bar
         justifyContent: "center",
         alignItems: "center",
         borderRadius: 22, // Match border radius of input bar
+=======
+        paddingHorizontal: 12,
+        paddingVertical: 9,
+        borderRadius: 18,
+>>>>>>> bc7273d37f9b74e3598b438315d3ba40a397f95d
         backgroundColor: "#2B2A27",
     },
     searchBtnDisabled: { opacity: 0.35 },
