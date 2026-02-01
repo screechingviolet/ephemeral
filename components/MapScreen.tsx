@@ -26,11 +26,13 @@ interface Event {
 type MapScreenProps = {
   refreshSignal?: number;
   selectedEventId?: string;
+  openSignal?: number;
 };
 
 export default function MapScreen({
   refreshSignal = 0,
   selectedEventId,
+  openSignal = 0,
 }: MapScreenProps) {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
@@ -61,7 +63,7 @@ export default function MapScreen({
       setSelectedEvent(match);
       setModalVisible(true);
     }
-  }, [selectedEventId, events]);
+  }, [selectedEventId, events, openSignal]);
 
 
 
@@ -139,7 +141,7 @@ export default function MapScreen({
     try {
       // Fetch events within 10km radius
       const response = await fetch(
-        `${API_BASE_URL}/events/nearby?lat=${lat}&lng=${lng}&radius_m=4500&limit=50&sort=distance`
+        `${API_BASE_URL}/events/nearby?lat=${lat}&lng=${lng}&radius_m=4500&limit=50&sort=distance&ts=${Date.now()}`
       );
       
       if (!response.ok) {

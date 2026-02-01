@@ -100,6 +100,7 @@ export default function EventsScreen() {
                 active_only: "true",
                 limit: "50",
                 sort: "distance",
+                ts: Date.now().toString(),
             });
 
             const response = await fetch(

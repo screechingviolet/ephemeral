@@ -5,13 +5,21 @@ import { ThemedView } from "@/components/themed-view";
 import { Pressable, StyleSheet } from "react-native";
 import { useState } from "react";
 import { useLocalSearchParams } from "expo-router";
+import { useFocusEffect } from "@react-navigation/native";
 
 export default function ExploreScreen() {
     const [refreshSignal, setRefreshSignal] = useState(0);
+    const [openSignal, setOpenSignal] = useState(0);
     const params = useLocalSearchParams();
     const eventIdParam = Array.isArray(params.eventId)
         ? params.eventId[0]
         : params.eventId;
+
+    useFocusEffect(() => {
+        if (typeof eventIdParam === "string") {
+            setOpenSignal((prev) => prev + 1);
+        }
+    });
 
     return (
         <ThemedView style={styles.container}>
@@ -35,6 +43,7 @@ export default function ExploreScreen() {
                                 ? eventIdParam
                                 : undefined
                         }
+                        openSignal={openSignal}
                     />
                 </StripeGate>
             </ThemedView>
