@@ -9,7 +9,11 @@
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSCameraUsageDescription": "Allow Ephemeral to access the camera so you can add event photos.",
+        "NSPhotoLibraryUsageDescription": "Allow Ephemeral to access your photo library so you can attach event photos."
+      }
     },
     "android": {
       "adaptiveIcon": {
