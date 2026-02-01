@@ -351,7 +351,7 @@ const styles = StyleSheet.create({
         marginLeft: 8,
         paddingHorizontal: 12,
         paddingVertical: 9,
-        borderRadius: 16,
+        borderRadius: 18,
         backgroundColor: "#2B2A27",
     },
     // Move these out of the brackets above
