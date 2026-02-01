@@ -1,5 +1,8 @@
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
+import StripeGate from "@/components/StripeGate";
+import TipButton from "@/components/TipButton";
+import { DEMO_CONNECT_ACCOUNT_ID } from "@/constants/payments";
 import { Colors } from "@/constants/theme";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useState } from "react";
@@ -20,6 +23,7 @@ interface Event {
     date: string;
     time: string;
     description: string;
+    recipient_id?: string | null;
 }
 
 const MOCK_EVENTS: Event[] = [
@@ -31,6 +35,7 @@ const MOCK_EVENTS: Event[] = [
         date: "Feb 15, 2026",
         time: "7:00 PM",
         description: "Live jazz performances under the stars",
+        recipient_id: DEMO_CONNECT_ACCOUNT_ID,
     },
     {
         id: 2,
@@ -40,6 +45,7 @@ const MOCK_EVENTS: Event[] = [
         date: "Feb 20, 2026",
         time: "9:00 AM",
         description: "Leading tech innovators discuss the future",
+        recipient_id: DEMO_CONNECT_ACCOUNT_ID,
     },
     {
         id: 3,
@@ -49,6 +55,7 @@ const MOCK_EVENTS: Event[] = [
         date: "Feb 8, 2026",
         time: "8:00 AM",
         description: "Fresh produce and local artisan goods",
+        recipient_id: DEMO_CONNECT_ACCOUNT_ID,
     },
     {
         id: 4,
@@ -58,6 +65,7 @@ const MOCK_EVENTS: Event[] = [
         date: "Feb 12, 2026",
         time: "6:00 PM",
         description: "Contemporary art exhibition featuring local artists",
+        recipient_id: DEMO_CONNECT_ACCOUNT_ID,
     },
     {
         id: 5,
@@ -67,6 +75,7 @@ const MOCK_EVENTS: Event[] = [
         date: "Feb 10, 2026",
         time: "7:00 AM",
         description: "Start your day with mindful movement",
+        recipient_id: DEMO_CONNECT_ACCOUNT_ID,
     },
     {
         id: 6,
@@ -76,6 +85,7 @@ const MOCK_EVENTS: Event[] = [
         date: "Feb 18, 2026",
         time: "12:00 PM",
         description: "Taste cuisines from around the world",
+        recipient_id: DEMO_CONNECT_ACCOUNT_ID,
     },
     {
         id: 7,
@@ -85,6 +95,7 @@ const MOCK_EVENTS: Event[] = [
         date: "Feb 14, 2026",
         time: "8:00 PM",
         description: "Local bands and acoustic performances",
+        recipient_id: DEMO_CONNECT_ACCOUNT_ID,
     },
     {
         id: 8,
@@ -94,6 +105,7 @@ const MOCK_EVENTS: Event[] = [
         date: "Feb 25, 2026",
         time: "2:00 PM",
         description: "Watch entrepreneurs pitch their ideas",
+        recipient_id: DEMO_CONNECT_ACCOUNT_ID,
     },
 ];
 
@@ -127,11 +139,12 @@ export default function EventsScreen() {
             style={styles.background}
             resizeMode="cover"
         >
-            <ThemedView style={styles.container}>
-                <ScrollView
-                    style={styles.scrollView}
-                    showsVerticalScrollIndicator={false}
-                >
+            <StripeGate>
+                <ThemedView style={styles.container}>
+                    <ScrollView
+                        style={styles.scrollView}
+                        showsVerticalScrollIndicator={false}
+                    >
                     {/* Header */}
                     <View style={styles.header}>
                         <ThemedText style={styles.title}>Moments</ThemedText>
@@ -241,11 +254,7 @@ export default function EventsScreen() {
                             </View>
                         ) : (
                             filteredEvents.map((event) => (
-                                <TouchableOpacity
-                                    key={event.id}
-                                    style={styles.eventCard}
-                                    activeOpacity={0.92}
-                                >
+                                <View key={event.id} style={styles.eventCard}>
                                     {/* Title row */}
                                     <View style={styles.eventHeader}>
                                         <View style={styles.badge}>
@@ -279,12 +288,20 @@ export default function EventsScreen() {
                                             🕐 {event.time}
                                         </ThemedText>
                                     </View>
-                                </TouchableOpacity>
+
+                                    <View style={styles.tipRow}>
+                                        <TipButton
+                                            recipientId={event.recipient_id}
+                                            label="Tip $5"
+                                        />
+                                    </View>
+                                </View>
                             ))
                         )}
                     </View>
                 </ScrollView>
             </ThemedView>
+        </StripeGate>
         </ImageBackground>
     );
 }
@@ -457,6 +474,10 @@ const createStyles = (colors: typeof Colors.light | typeof Colors.dark) =>
             paddingTop: 12,
             borderTopWidth: 1,
             borderTopColor: "rgba(43,42,39,0.08)",
+        },
+        tipRow: {
+            marginTop: 12,
+            alignItems: "flex-start",
         },
         eventMeta: {
             fontSize: 13.5,

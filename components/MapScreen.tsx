@@ -4,6 +4,8 @@ import MapView, { Marker, Region, PROVIDER_DEFAULT } from 'react-native-maps';
 import * as Location from 'expo-location';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import TipButton from '@/components/TipButton';
+import { DEMO_CONNECT_ACCOUNT_ID } from '@/constants/payments';
 
 interface Event {
   id: number;
@@ -16,6 +18,7 @@ interface Event {
   description: string;
   latitude: number;
   longitude: number;
+  recipient_id?: string | null;
 }
 
 // Hardcoded events near Warwick, RI
@@ -30,6 +33,7 @@ const MOCK_EVENTS: Event[] = [
     description: 'Live jazz performances under the stars featuring local musicians',
     latitude: 41.8240,
     longitude: -71.4128,
+    recipient_id: DEMO_CONNECT_ACCOUNT_ID,
   },
   {
     id: 2,
@@ -41,6 +45,7 @@ const MOCK_EVENTS: Event[] = [
     description: 'Leading tech innovators discuss the future of technology',
     latitude: 41.7001,
     longitude: -71.4162,
+    recipient_id: DEMO_CONNECT_ACCOUNT_ID,
   },
   {
     id: 3,
@@ -52,6 +57,7 @@ const MOCK_EVENTS: Event[] = [
     description: 'Fresh produce and local artisan goods every weekend',
     latitude: 41.4901,
     longitude: -71.3128,
+    recipient_id: DEMO_CONNECT_ACCOUNT_ID,
   },
   {
     id: 4,
@@ -63,6 +69,7 @@ const MOCK_EVENTS: Event[] = [
     description: 'Contemporary art exhibition featuring local artists',
     latitude: 41.8230,
     longitude: -71.4220,
+    recipient_id: DEMO_CONNECT_ACCOUNT_ID,
   },
   {
     id: 5,
@@ -74,6 +81,7 @@ const MOCK_EVENTS: Event[] = [
     description: 'Local bands and acoustic performances in an intimate setting',
     latitude: 41.7100,
     longitude: -71.4200,
+    recipient_id: DEMO_CONNECT_ACCOUNT_ID,
   },
   {
     id: 6,
@@ -85,6 +93,7 @@ const MOCK_EVENTS: Event[] = [
     description: 'Selling for $2 each!',
     latitude: 41.8000,
     longitude: -71.4200,
+    recipient_id: DEMO_CONNECT_ACCOUNT_ID,
   },
   {
     id: 7,
@@ -96,6 +105,7 @@ const MOCK_EVENTS: Event[] = [
     description: 'Playing on the street corner. Come by and watch :)',
     latitude: 41.7100,
     longitude: -71.5000,
+    recipient_id: DEMO_CONNECT_ACCOUNT_ID,
   }
 ];
 
@@ -304,6 +314,10 @@ export default function MapScreen() {
                   >
                     <Text style={styles.attendButtonText}>I'm Interested</Text>
                   </TouchableOpacity>
+
+                  <View style={styles.tipButtonWrap}>
+                    <TipButton recipientId={selectedEvent.recipient_id} label="Tip $5" />
+                  </View>
                 </>
               )}
             </ScrollView>
@@ -510,6 +524,9 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: '600',
     color: '#FFF',
+  },
+  tipButtonWrap: {
+    marginTop: 12,
   },
 });
 
