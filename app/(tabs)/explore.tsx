@@ -1,7 +1,6 @@
 import MapScreen from "@/components/MapScreen";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
-import { Fonts } from "@/constants/theme";
 import { StyleSheet } from "react-native";
 
 export default function ExploreScreen() {
@@ -25,13 +24,15 @@ const styles = StyleSheet.create({
     },
     header: {
         paddingHorizontal: 20,
-        paddingTop: 60,
+        paddingTop: 70,
         paddingBottom: 16,
         zIndex: 10,
+        alignItems: "center",
     },
     title: {
-        fontFamily: Fonts.rounded,
-        fontSize: 36,
+        fontFamily: "FrauncesBold",
+        fontSize: 40,
+        letterSpacing: -0.3,
         fontWeight: "bold",
     },
     mapContainer: {

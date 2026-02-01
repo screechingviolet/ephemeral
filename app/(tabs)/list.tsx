@@ -312,7 +312,7 @@ const createStyles = (colors: typeof Colors.light | typeof Colors.dark) =>
         },
         title: {
             fontFamily: "FrauncesBold",
-            fontSize: 46,
+            fontSize: 40,
             lineHeight: 58,
             letterSpacing: -0.3,
             color: "#2B2A27",
