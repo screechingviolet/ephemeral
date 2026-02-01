@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, Text, Alert, ActivityIndicator, Modal, TouchableOpacity, ScrollView } from 'react-native';
+import { StyleSheet, View, Text, Alert, ActivityIndicator, Modal, TouchableOpacity, ScrollView, Image } from 'react-native';
 import MapView, { Marker, Region } from 'react-native-maps';
 import * as Location from 'expo-location';
 import { Colors } from '@/constants/theme';
@@ -19,6 +19,7 @@ interface Event {
   lng: number;
   _distance_m?: number;
   recipient_id?: string | null;
+  image_keys?: string[];
 }
 
 const API_BASE_URL = 'http://localhost:8000';
@@ -34,6 +35,8 @@ export default function MapScreen() {
   const [modalVisible, setModalVisible] = useState<boolean>(false);
   const [events, setEvents] = useState<Event[]>([]);
   const [fetchingEvents, setFetchingEvents] = useState<boolean>(false);
+  const [selectedImageUrl, setSelectedImageUrl] = useState<string | null>(null);
+  const [imageLoading, setImageLoading] = useState<boolean>(false);
 
   useEffect(() => {
     getUserLocation();
@@ -44,6 +47,40 @@ export default function MapScreen() {
       fetchNearbyEvents(location.latitude, location.longitude);
     }
   }, [location]);
+
+  useEffect(() => {
+    const loadImageUrl = async () => {
+      if (!selectedEvent?.image_keys?.length) {
+        setSelectedImageUrl(null);
+        return;
+      }
+
+      const objectKey = selectedEvent.image_keys[0];
+      if (!objectKey) {
+        setSelectedImageUrl(null);
+        return;
+      }
+
+      setImageLoading(true);
+      try {
+        const response = await fetch(
+          `${API_BASE_URL}/events/image-download-url?object_key=${encodeURIComponent(objectKey)}`
+        );
+        if (!response.ok) {
+          throw new Error('Failed to fetch image URL');
+        }
+        const data = await response.json();
+        setSelectedImageUrl(data.download_url || null);
+      } catch (error) {
+        console.error('Failed to load image URL:', error);
+        setSelectedImageUrl(null);
+      } finally {
+        setImageLoading(false);
+      }
+    };
+
+    loadImageUrl();
+  }, [selectedEvent]);
 
   const getUserLocation = async (): Promise<void> => {
     try {
@@ -236,6 +273,15 @@ export default function MapScreen() {
             <View style={[styles.categoryBadge, { backgroundColor: colors.accent }]}>
               <Text style={styles.categoryText}>{selectedEvent.category}</Text>
             </View>
+            {selectedEvent.image_keys?.length ? (
+              <View style={styles.imageSection}>
+                {imageLoading ? (
+                  <ActivityIndicator size="small" color={colors.text} />
+                ) : selectedImageUrl ? (
+                  <Image source={{ uri: selectedImageUrl }} style={styles.eventImage} />
+                ) : null}
+              </View>
+            ) : null}
             {selectedEvent._distance_m && (
               <View style={styles.modalSection}>
                 <Text style={[styles.modalLabel, { color: colors.text, opacity: 0.7 }]}>
@@ -514,6 +560,16 @@ actionButtonText: {
   modalDescription: {
     fontSize: 15,
     lineHeight: 22,
+  },
+  imageSection: {
+    marginTop: 12,
+    marginBottom: 12,
+  },
+  eventImage: {
+    width: '100%',
+    height: 180,
+    borderRadius: 16,
+    marginTop: 8,
   },
   attendButton: {
     paddingVertical: 16,
