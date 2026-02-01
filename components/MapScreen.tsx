@@ -6,6 +6,7 @@ import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import TipButton from '@/components/TipButton';
 import { DEMO_CONNECT_ACCOUNT_ID } from '@/constants/payments';
+import { API_BASE_URL } from '@/constants/api';
 
 interface Event {
   event_id: string;
@@ -21,9 +22,6 @@ interface Event {
   recipient_id?: string | null;
   image_keys?: string[];
 }
-
-const API_BASE_URL = 'http://localhost:8000';
-
 
 export default function MapScreen() {
   const colorScheme = useColorScheme();
@@ -47,6 +45,8 @@ export default function MapScreen() {
       fetchNearbyEvents(location.latitude, location.longitude);
     }
   }, [location]);
+
+
 
   useEffect(() => {
     const loadImageUrl = async () => {

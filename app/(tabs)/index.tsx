@@ -17,6 +17,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { EventCard } from "@/components/EventCard";
+import { API_BASE_URL } from "@/constants/api";
 
 const PHRASES = [
   "fleeting moments",
@@ -253,9 +254,7 @@ export default function HomeScreen() {
 
     const canSend = input.trim().length > 0;
 
-    const API_URL = process.env.EXPO_PUBLIC_API_URL;
-
-    const disabledReason = !API_URL
+    const disabledReason = !API_BASE_URL
         ? "Missing API URL"
         : locLoading
           ? "Getting location…"
@@ -266,10 +265,10 @@ export default function HomeScreen() {
     const submit = async () => {
         if (!canSend || loading) return;
 
-        if (!API_URL) {
+        if (!API_BASE_URL) {
             Alert.alert(
                 "Missing API URL",
-                "Set EXPO_PUBLIC_API_URL in your .env (use your laptop IP on a real phone).",
+                "Set EXPO_PUBLIC_API_BASE_URL in your .env (use your laptop IP on a real phone).",
             );
             return;
         }
@@ -299,7 +298,7 @@ export default function HomeScreen() {
         setEvents([]);
 
         try {
-            const res = await fetch(`${API_URL}/api/events/recommend`, {
+            const res = await fetch(`${API_BASE_URL}/api/events/recommend`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({

@@ -2,6 +2,7 @@ import LocationPicker from "@/components/LocationPicker";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { Colors } from "@/constants/theme";
+import { API_BASE_URL } from "@/constants/api";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import * as ImagePicker from "expo-image-picker";
 import { useState } from "react";
@@ -209,7 +210,7 @@ export default function AddEventScreen() {
 
         try {
             setSubmitting(true);
-            const response = await fetch("http://localhost:8000/events", {
+            const response = await fetch(`${API_BASE_URL}/events`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(eventData),
@@ -228,7 +229,7 @@ export default function AddEventScreen() {
 
             const contentType = imageAsset.mimeType || "image/jpeg";
             const uploadUrlResponse = await fetch(
-                `http://localhost:8000/events/image-upload-url?event_id=${encodeURIComponent(
+                `${API_BASE_URL}/events/image-upload-url?event_id=${encodeURIComponent(
                     eventId,
                 )}&content_type=${encodeURIComponent(contentType)}`,
                 { method: "POST" },
@@ -259,7 +260,7 @@ export default function AddEventScreen() {
             }
 
             const attachResponse = await fetch(
-                `http://localhost:8000/events/${encodeURIComponent(eventId)}`,
+                `${API_BASE_URL}/events/${encodeURIComponent(eventId)}`,
                 {
                     method: "PATCH",
                     headers: { "Content-Type": "application/json" },

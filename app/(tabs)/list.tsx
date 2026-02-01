@@ -4,6 +4,7 @@ import StripeGate from "@/components/StripeGate";
 import TipButton from "@/components/TipButton";
 import { DEMO_CONNECT_ACCOUNT_ID } from "@/constants/payments";
 import { Colors } from "@/constants/theme";
+import { API_BASE_URL } from "@/constants/api";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useEffect, useState } from "react";
 import {
@@ -44,8 +45,6 @@ const CATEGORIES = [
 ];
 
 // Replace with your actual API endpoint
-const API_BASE_URL = "http://localhost:8000"; // TODO: Update this with your actual API URL
-
 export default function EventsScreen() {
     const colorScheme = useColorScheme();
     const colors = Colors[colorScheme ?? "light"];
