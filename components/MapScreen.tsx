@@ -9,7 +9,7 @@ interface Event {
   id: number;
   title: string;
   category: string;
-  location: string;
+  // location: string;
   date: string;
   time: string;
   endtime: string;

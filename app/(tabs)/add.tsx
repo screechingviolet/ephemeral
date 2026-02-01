@@ -275,7 +275,7 @@ export default function AddEventScreen() {
                         />
 
                         {/* Venue */}
-                        <View style={styles.inputGroup}>
+                        {/*<View style={styles.inputGroup}>
                             <ThemedText style={styles.label}>
                                 Venue Name
                             </ThemedText>
@@ -286,7 +286,7 @@ export default function AddEventScreen() {
                                 value={venue}
                                 onChangeText={setVenue}
                             />
-                        </View>
+                        </View>*/}
 
                         {/* Date */}
                         <View style={styles.inputGroup}>
@@ -377,7 +377,7 @@ export default function AddEventScreen() {
                         </View>
 
                         {/* Organizer */}
-                        <View style={styles.inputGroup}>
+                        {/*<View style={styles.inputGroup}>
                             <ThemedText style={styles.label}>
                                 Organizer Name
                             </ThemedText>
@@ -388,10 +388,10 @@ export default function AddEventScreen() {
                                 value={organizer}
                                 onChangeText={setOrganizer}
                             />
-                        </View>
+                        </View>*/}
 
                         {/* Contact Email */}
-                        <View style={styles.inputGroup}>
+                        {/*<View style={styles.inputGroup}>
                             <ThemedText style={styles.label}>
                                 Contact Email
                             </ThemedText>
@@ -404,7 +404,7 @@ export default function AddEventScreen() {
                                 keyboardType="email-address"
                                 autoCapitalize="none"
                             />
-                        </View>
+                        </View>*/}
 
                         {/* Submit Button */}
                         <TouchableOpacity
