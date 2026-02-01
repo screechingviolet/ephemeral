@@ -1,4 +1,5 @@
 import MapScreen from "@/components/MapScreen";
+import StripeGate from "@/components/StripeGate";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { StyleSheet } from "react-native";
@@ -12,7 +13,9 @@ export default function ExploreScreen() {
                 </ThemedText>
             </ThemedView>
             <ThemedView style={styles.mapContainer}>
-                <MapScreen />
+                <StripeGate>                    
+            <MapScreen />
+                </StripeGate>
             </ThemedView>
         </ThemedView>
     );

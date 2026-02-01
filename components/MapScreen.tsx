@@ -4,6 +4,8 @@ import MapView, { Marker, Region } from 'react-native-maps';
 import * as Location from 'expo-location';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import TipButton from '@/components/TipButton';
+import { DEMO_CONNECT_ACCOUNT_ID } from '@/constants/payments';
 
 interface Event {
   event_id: string;
@@ -16,9 +18,11 @@ interface Event {
   lat: number;
   lng: number;
   _distance_m?: number;
+  recipient_id?: string | null;
 }
 
 const API_BASE_URL = 'http://localhost:8000';
+
 
 export default function MapScreen() {
   const colorScheme = useColorScheme();
@@ -291,6 +295,9 @@ export default function MapScreen() {
               >
                 <Text style={[styles.actionButtonText, { color: '#0F0A08' }]}>💵</Text>
               </TouchableOpacity>
+              {/*<View style={styles.tipButtonWrap}>
+                     <TipButton recipientId={selectedEvent.recipient_id} label="Tip $5" />
+                   </View>*/}
             </View>
           </>
         )}
@@ -525,6 +532,9 @@ actionButtonText: {
     fontSize: 17,
     fontWeight: '600',
     color: '#FFF',
+  },
+  tipButtonWrap: {
+    marginTop: 12,
   },
 });
 

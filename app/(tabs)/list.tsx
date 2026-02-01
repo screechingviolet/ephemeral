@@ -1,8 +1,11 @@
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
+import StripeGate from "@/components/StripeGate";
+import TipButton from "@/components/TipButton";
+import { DEMO_CONNECT_ACCOUNT_ID } from "@/constants/payments";
 import { Colors } from "@/constants/theme";
 import { useColorScheme } from "@/hooks/use-color-scheme";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ImageBackground,
   ScrollView,
@@ -10,114 +13,155 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  ActivityIndicator,
+  Alert,
 } from "react-native";
+import * as Location from "expo-location";
 
 interface Event {
-    id: number;
-    title: string;
+    event_id: string;
+    name: string;
     category: string;
-    location: string;
-    date: string;
-    time: string;
     description: string;
+    lat: number;
+    lng: number;
+    start_time: number;
+    end_time?: number;
+    status: string;
+    recipient_id?: string | null;
+    _distance_m?: number;
 }
 
-const MOCK_EVENTS: Event[] = [
-    {
-        id: 1,
-        title: "Summer Jazz Festival",
-        category: "Music",
-        location: "Providence",
-        date: "Feb 15, 2026",
-        time: "7:00 PM",
-        description: "Live jazz performances under the stars",
-    },
-    {
-        id: 2,
-        title: "Tech Innovation Summit",
-        category: "Technology",
-        location: "Warwick",
-        date: "Feb 20, 2026",
-        time: "9:00 AM",
-        description: "Leading tech innovators discuss the future",
-    },
-    {
-        id: 3,
-        title: "Local Farmers Market",
-        category: "Food",
-        location: "Newport",
-        date: "Feb 8, 2026",
-        time: "8:00 AM",
-        description: "Fresh produce and local artisan goods",
-    },
-    {
-        id: 4,
-        title: "Art Gallery Opening",
-        category: "Art",
-        location: "Providence",
-        date: "Feb 12, 2026",
-        time: "6:00 PM",
-        description: "Contemporary art exhibition featuring local artists",
-    },
-    {
-        id: 5,
-        title: "Community Yoga Session",
-        category: "Wellness",
-        location: "Warwick",
-        date: "Feb 10, 2026",
-        time: "7:00 AM",
-        description: "Start your day with mindful movement",
-    },
-    {
-        id: 6,
-        title: "Food Truck Rally",
-        category: "Food",
-        location: "Providence",
-        date: "Feb 18, 2026",
-        time: "12:00 PM",
-        description: "Taste cuisines from around the world",
-    },
-    {
-        id: 7,
-        title: "Live Music Night",
-        category: "Music",
-        location: "Newport",
-        date: "Feb 14, 2026",
-        time: "8:00 PM",
-        description: "Local bands and acoustic performances",
-    },
-    {
-        id: 8,
-        title: "Startup Pitch Competition",
-        category: "Technology",
-        location: "Providence",
-        date: "Feb 25, 2026",
-        time: "2:00 PM",
-        description: "Watch entrepreneurs pitch their ideas",
-    },
+const CATEGORIES = [
+    "All",
+    "Free",
+    "Tip Optional",
+    "Pay To Experience",
+    "House Sale",
+    "After-Hours Sale",
+    "Popup Vendor",
+    "Other Moment",
 ];
 
-const CATEGORIES = ["All", "Music", "Food", "Technology", "Art", "Wellness"];
-const LOCATIONS = ["All", "Providence", "Warwick", "Newport"];
+// Replace with your actual API endpoint
+const API_BASE_URL = "http://localhost:8000"; // TODO: Update this with your actual API URL
 
 export default function EventsScreen() {
     const colorScheme = useColorScheme();
     const colors = Colors[colorScheme ?? "light"];
 
     const [selectedCategory, setSelectedCategory] = useState("All");
-    const [selectedLocation, setSelectedLocation] = useState("All");
     const [searchQuery, setSearchQuery] = useState("");
+    const [events, setEvents] = useState<Event[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [location, setLocation] = useState<{
+        latitude: number;
+        longitude: number;
+    } | null>(null);
 
-    const filteredEvents = MOCK_EVENTS.filter((event) => {
+    // Get user location
+    useEffect(() => {
+        (async () => {
+            try {
+                let { status } = await Location.requestForegroundPermissionsAsync();
+                if (status !== "granted") {
+                    Alert.alert(
+                        "Permission Denied",
+                        "Location permission is required to find nearby events"
+                    );
+                    setLoading(false);
+                    return;
+                }
+
+                let currentLocation = await Location.getCurrentPositionAsync({});
+                setLocation({
+                    latitude: currentLocation.coords.latitude,
+                    longitude: currentLocation.coords.longitude,
+                });
+            } catch (error) {
+                console.error("Error getting location:", error);
+                Alert.alert("Error", "Failed to get your location");
+                setLoading(false);
+            }
+        })();
+    }, []);
+
+    // Fetch events from API
+    useEffect(() => {
+        if (!location) return;
+
+        const fetchEvents = async () => {
+            setLoading(true);
+            try {
+                const params = new URLSearchParams({
+                    lat: location.latitude.toString(),
+                    lng: location.longitude.toString(),
+                    radius_m: "4500", // 10km radius, adjust as needed
+                    active_only: "true",
+                    limit: "50",
+                    sort: "distance",
+                });
+
+                const response = await fetch(
+                    `${API_BASE_URL}/events/nearby?${params}`
+                );
+
+                if (!response.ok) {
+                    throw new Error("Failed to fetch events");
+                }
+
+                const data: Event[] = await response.json();
+                setEvents(data);
+            } catch (error) {
+                console.error("Error fetching events:", error);
+                Alert.alert("Error", "Failed to load events. Please try again.");
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchEvents();
+    }, [location]);
+
+    // Filter events based on category and search
+    const filteredEvents = events.filter((event) => {
         const matchesCategory =
-            selectedCategory === "All" || event.category === selectedCategory;
-        const matchesLocation =
-            selectedLocation === "All" || event.location === selectedLocation;
+            selectedCategory === "All" ||
+            event.category === selectedCategory;
         const matchesSearch =
-            event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            event.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
             event.description.toLowerCase().includes(searchQuery.toLowerCase());
-        return matchesCategory && matchesLocation && matchesSearch;
+        return matchesCategory && matchesSearch;
     });
+
+    // Format timestamp to readable date
+    const formatDate = (timestamp: number): string => {
+        const date = new Date(timestamp * 1000);
+        return date.toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+            year: "numeric",
+        });
+    };
+
+    // Format timestamp to readable time
+    const formatTime = (timestamp: number): string => {
+        const date = new Date(timestamp * 1000);
+        return date.toLocaleTimeString("en-US", {
+            hour: "numeric",
+            minute: "2-digit",
+            hour12: true,
+        });
+    };
+
+    // Format distance
+    const formatDistance = (meters?: number): string => {
+        if (!meters) return "";
+        if (meters < 1000) {
+            return `${Math.round(meters)}m away`;
+        }
+        return `${(meters / 1000).toFixed(1)}km away`;
+    };
 
     const styles = createStyles(colors);
 
@@ -127,6 +171,7 @@ export default function EventsScreen() {
             style={styles.background}
             resizeMode="cover"
         >
+            <StripeGate>
             <ThemedView style={styles.container}>
                 <ScrollView
                     style={styles.scrollView}
@@ -136,7 +181,7 @@ export default function EventsScreen() {
                     <View style={styles.header}>
                         <ThemedText style={styles.title}>Moments</ThemedText>
                         <ThemedText style={styles.subtitle}>
-                            Discover what’s happening nearby
+                            Discover what's happening nearby
                         </ThemedText>
                     </View>
 
@@ -194,46 +239,19 @@ export default function EventsScreen() {
                         </ScrollView>
                     </View>
 
-                    {/* Location Filter */}
-                    <View style={styles.filterSection}>
-                        <ThemedText style={styles.filterLabel}>
-                            Location
-                        </ThemedText>
-                        <ScrollView
-                            horizontal
-                            showsHorizontalScrollIndicator={false}
-                            contentContainerStyle={styles.filterRow}
-                        >
-                            {LOCATIONS.map((location) => (
-                                <TouchableOpacity
-                                    key={location}
-                                    style={[
-                                        styles.filterChip,
-                                        selectedLocation === location &&
-                                            styles.filterChipActive,
-                                    ]}
-                                    onPress={() =>
-                                        setSelectedLocation(location)
-                                    }
-                                    activeOpacity={0.85}
-                                >
-                                    <ThemedText
-                                        style={[
-                                            styles.filterChipText,
-                                            selectedLocation === location &&
-                                                styles.filterChipTextActive,
-                                        ]}
-                                    >
-                                        {location}
-                                    </ThemedText>
-                                </TouchableOpacity>
-                            ))}
-                        </ScrollView>
-                    </View>
-
                     {/* Events List */}
                     <View style={styles.eventsContainer}>
-                        {filteredEvents.length === 0 ? (
+                        {loading ? (
+                            <View style={styles.loadingState}>
+                                <ActivityIndicator
+                                    size="large"
+                                    color="#6E1352"
+                                />
+                                <ThemedText style={styles.loadingText}>
+                                    Finding moments near you...
+                                </ThemedText>
+                            </View>
+                        ) : filteredEvents.length === 0 ? (
                             <View style={styles.emptyState}>
                                 <ThemedText style={styles.emptyStateText}>
                                     No events found matching your filters
@@ -241,56 +259,70 @@ export default function EventsScreen() {
                             </View>
                         ) : (
                             filteredEvents.map((event) => (
-                                <TouchableOpacity
-                                    key={event.id}
+                                <View
+                                    key={event.event_id}
                                     style={styles.eventCard}
-                                    activeOpacity={0.92}
                                 >
                                     {/* Title row */}
                                     <View style={styles.eventHeader}>
-                                        <View style={styles.badge}>
-                                            <ThemedText
-                                                style={styles.badgeText}
-                                            >
-                                                {event.category}
-                                            </ThemedText>
-                                        </View>
+                                        
+                                            <View style={styles.badge}>
+                                                <ThemedText
+                                                    style={styles.badgeText}
+                                                >
+                                                    {event.category}
+                                                </ThemedText>
+                                            </View>
+                                        
                                         <ThemedText style={styles.eventTitle}>
-                                            {event.title}
+                                            {event.name}
                                         </ThemedText>
                                     </View>
 
-                                    {/* Location */}
-                                    <ThemedText style={styles.locationText}>
-                                        📍 {event.location}
-                                    </ThemedText>
+                                    {/* Distance */}
+                                    {event._distance_m !== undefined && (
+                                        <ThemedText
+                                            style={styles.locationText}
+                                        >
+                                            {formatDistance(event._distance_m)}
+                                        </ThemedText>
+                                    )}
 
                                     {/* Description */}
-                                    <ThemedText style={styles.eventDescription}>
+                                    <ThemedText
+                                        style={styles.eventDescription}
+                                    >
                                         {event.description}
                                     </ThemedText>
 
                                     {/* Footer */}
                                     <View style={styles.eventFooter}>
                                         <ThemedText style={styles.eventMeta}>
-                                            🗓️ {event.date}
+                                            {formatDate(event.start_time)}
                                         </ThemedText>
                                         <ThemedText style={styles.eventMeta}>
-                                            🕐 {event.time}
+                                            {formatTime(event.start_time)}
                                         </ThemedText>
                                     </View>
-                                </TouchableOpacity>
+
+                                    <View style={styles.tipRow}>
+                                        {/*<TipButton
+                                            recipientId={event.recipient_id}
+                                            label="Tip $5"
+                                        />*/}
+                                    </View>
+                                </View>
                             ))
                         )}
                     </View>
                 </ScrollView>
             </ThemedView>
+            </StripeGate>
         </ImageBackground>
     );
 }
 
 /**
- * Palette (from you):
  * Plum   #6E1352
  * Mauve  #AC515F
  * Almond #E98E58
@@ -458,9 +490,26 @@ const createStyles = (colors: typeof Colors.light | typeof Colors.dark) =>
             borderTopWidth: 1,
             borderTopColor: "rgba(43,42,39,0.08)",
         },
+        tipRow: {
+            marginTop: 12,
+            alignItems: "flex-start",
+        },
         eventMeta: {
             fontSize: 13.5,
             opacity: 0.75,
+            color: "#35332F",
+        },
+
+        // --- loading ---
+        loadingState: {
+            paddingVertical: 60,
+            alignItems: "center",
+            gap: 16,
+        },
+        loadingText: {
+            fontSize: 16,
+            opacity: 0.65,
+            textAlign: "center",
             color: "#35332F",
         },
 
@@ -475,10 +524,5 @@ const createStyles = (colors: typeof Colors.light | typeof Colors.dark) =>
 
         background: {
             flex: 1,
-        },
-
-        container: {
-            flex: 1,
-            backgroundColor: "transparent", // IMPORTANT
         },
     });

@@ -44,7 +44,13 @@
           }
         }
       ],
-      "expo-font"
+      "expo-font",
+      [
+        "@stripe/stripe-react-native",
+        {
+          "merchantIdentifier": "merchant.com.anonymous.ephemeral"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
