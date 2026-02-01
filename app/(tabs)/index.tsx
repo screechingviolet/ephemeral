@@ -19,11 +19,14 @@ type Role = "user" | "assistant";
 type Msg = { id: string; role: Role; text: string };
 
 const PHRASES = [
-  "temporary art",
+  "temporary artwork",
   "pop-up stands",
   "live concerts",
   "hidden galleries",
-  "street performances"
+  "street performances",
+  "food trucks",
+  "coworking sessions",
+  "leftover sales"
 ];
 
 export default function HomeScreen() {
