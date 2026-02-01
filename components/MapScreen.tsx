@@ -25,9 +25,13 @@ interface Event {
 
 type MapScreenProps = {
   refreshSignal?: number;
+  selectedEventId?: string;
 };
 
-export default function MapScreen({ refreshSignal = 0 }: MapScreenProps) {
+export default function MapScreen({
+  refreshSignal = 0,
+  selectedEventId,
+}: MapScreenProps) {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
   
@@ -49,6 +53,15 @@ export default function MapScreen({ refreshSignal = 0 }: MapScreenProps) {
       fetchNearbyEvents(location.latitude, location.longitude);
     }
   }, [location, refreshSignal]);
+
+  useEffect(() => {
+    if (!selectedEventId || events.length === 0) return;
+    const match = events.find((event) => event.event_id === selectedEventId);
+    if (match) {
+      setSelectedEvent(match);
+      setModalVisible(true);
+    }
+  }, [selectedEventId, events]);
 
 
 

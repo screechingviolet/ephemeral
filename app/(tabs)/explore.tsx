@@ -4,9 +4,14 @@ import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { Pressable, StyleSheet } from "react-native";
 import { useState } from "react";
+import { useLocalSearchParams } from "expo-router";
 
 export default function ExploreScreen() {
     const [refreshSignal, setRefreshSignal] = useState(0);
+    const params = useLocalSearchParams();
+    const eventIdParam = Array.isArray(params.eventId)
+        ? params.eventId[0]
+        : params.eventId;
 
     return (
         <ThemedView style={styles.container}>
@@ -23,7 +28,14 @@ export default function ExploreScreen() {
             </ThemedView>
             <ThemedView style={styles.mapContainer}>
                 <StripeGate>
-                    <MapScreen refreshSignal={refreshSignal} />
+                    <MapScreen
+                        refreshSignal={refreshSignal}
+                        selectedEventId={
+                            typeof eventIdParam === "string"
+                                ? eventIdParam
+                                : undefined
+                        }
+                    />
                 </StripeGate>
             </ThemedView>
         </ThemedView>

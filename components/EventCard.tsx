@@ -1,5 +1,5 @@
 import React from "react";
-import { StyleSheet, View } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
 import { ThemedText } from "@/components/themed-text";
 
 interface Event {
@@ -19,9 +19,10 @@ interface Event {
 
 interface EventCardProps {
     event: Event;
+    onPress?: () => void;
 }
 
-export const EventCard: React.FC<EventCardProps> = ({ event }) => {
+export const EventCard: React.FC<EventCardProps> = ({ event, onPress }) => {
     // Format timestamp to readable date
     const formatDate = (timestamp: number): string => {
         const date = new Date(timestamp * 1000);
@@ -51,8 +52,8 @@ export const EventCard: React.FC<EventCardProps> = ({ event }) => {
         return `${(meters / 1000).toFixed(1)}km away`;
     };
 
-    return (
-        <View style={styles.eventCard}>
+    const content = (
+        <>
             {/* Title row */}
             <View style={styles.eventHeader}>
                 {event.tags && event.tags.length > 0 && (
@@ -88,7 +89,15 @@ export const EventCard: React.FC<EventCardProps> = ({ event }) => {
                     🕐 {formatTime(event.start_time)}
                 </ThemedText>
             </View>
-        </View>
+        </>
+    );
+
+    return onPress ? (
+        <Pressable style={styles.eventCard} onPress={onPress}>
+            {content}
+        </Pressable>
+    ) : (
+        <View style={styles.eventCard}>{content}</View>
     );
 };
 

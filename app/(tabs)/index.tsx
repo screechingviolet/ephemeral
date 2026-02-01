@@ -17,6 +17,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { EventCard } from "@/components/EventCard";
+import { useRouter } from "expo-router";
 import { API_BASE_URL } from "@/constants/api";
 
 const PHRASES = [
@@ -138,6 +139,7 @@ function parseMessage(message: string): MessagePart[] {
 }
 
 export default function HomeScreen() {
+    const router = useRouter();
     const insets = useSafeAreaInsets();
 
     // landing -> answer
@@ -363,7 +365,18 @@ export default function HomeScreen() {
             } else {
                 const event = eventMap.get(part.eventId);
                 if (event) {
-                    return <EventCard key={`event-${index}`} event={event} />;
+                    return (
+                        <EventCard
+                            key={`event-${index}`}
+                            event={event}
+                            onPress={() =>
+                                router.push({
+                                    pathname: "/(tabs)/explore",
+                                    params: { eventId: event.event_id },
+                                })
+                            }
+                        />
+                    );
                 } else {
                     // Event not found, show placeholder
                     return (
