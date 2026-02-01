@@ -5,6 +5,7 @@ import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useState } from "react";
 import {
   Alert,
+  Image,
   ImageBackground,
   ScrollView,
   StyleSheet,
@@ -13,6 +14,7 @@ import {
   View,
 } from "react-native";
 import LocationPicker from '@/components/LocationPicker';
+import * as ImagePicker from "expo-image-picker";
 
 
 const CATEGORIES = [
@@ -41,12 +43,94 @@ export default function AddEventScreen() {
     const [date, setDate] = useState("");
     const [startTime, setStartTime] = useState("");
     const [endTime, setEndTime] = useState("");
+    const [isNow, setIsNow] = useState(false);
+    const [imageAsset, setImageAsset] = useState<ImagePicker.ImagePickerAsset | null>(null);
+    const [submitting, setSubmitting] = useState(false);
     const [venue, setVenue] = useState("");
     const [organizer, setOrganizer] = useState("");
     const [contactEmail, setContactEmail] = useState("");
-    const [minimumPrice, setMinimumPrice] = useState("");
 
-    const handleSubmit = () => {
+    const parseTimeToEpochSeconds = (
+        dateText: string,
+        timeText: string,
+    ): number | null => {
+        const dateMatch = dateText.trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+        if (!dateMatch) return null;
+        const month = Number(dateMatch[1]) - 1;
+        const day = Number(dateMatch[2]);
+        const year = Number(dateMatch[3]);
+
+        const timeMatch = timeText
+            .trim()
+            .match(/^(\d{1,2}):(\d{2})\s*([AaPp][Mm])$/);
+        if (!timeMatch) return null;
+        let hour = Number(timeMatch[1]);
+        const minute = Number(timeMatch[2]);
+        const meridiem = timeMatch[3].toLowerCase();
+        if (hour < 1 || hour > 12 || minute > 59) return null;
+        if (meridiem === "pm" && hour !== 12) hour += 12;
+        if (meridiem === "am" && hour === 12) hour = 0;
+
+        const dateObj = new Date(year, month, day, hour, minute, 0, 0);
+        if (Number.isNaN(dateObj.getTime())) return null;
+        return Math.floor(dateObj.getTime() / 1000);
+    };
+
+    const canUseCustomTime = !isNow;
+
+    const takePhoto = async () => {
+        try {
+            const permission = await ImagePicker.requestCameraPermissionsAsync();
+            if (!permission.granted) {
+                Alert.alert(
+                    "Camera Permission",
+                    "Please enable camera access to take a photo.",
+                );
+                return;
+            }
+
+            const result = await ImagePicker.launchCameraAsync({
+                mediaTypes: ImagePicker.MediaTypeOptions.Images,
+                quality: 0.8,
+            });
+
+            if (!result.canceled && result.assets[0]) {
+                setImageAsset(result.assets[0]);
+            }
+        } catch (error) {
+            console.error("Failed to launch camera:", error);
+            Alert.alert("Error", "Unable to open camera.");
+        }
+    };
+
+    const pickFromLibrary = async () => {
+        try {
+            const permission =
+                await ImagePicker.requestMediaLibraryPermissionsAsync();
+            if (!permission.granted) {
+                Alert.alert(
+                    "Photos Permission",
+                    "Please enable photo library access to select a photo.",
+                );
+                return;
+            }
+
+            const result = await ImagePicker.launchImageLibraryAsync({
+                mediaTypes: ImagePicker.MediaTypeOptions.Images,
+                quality: 0.8,
+            });
+
+            if (!result.canceled && result.assets[0]) {
+                setImageAsset(result.assets[0]);
+            }
+        } catch (error) {
+            console.error("Failed to open photo library:", error);
+            Alert.alert("Error", "Unable to open photo library.");
+        }
+    };
+
+    const handleSubmit = async () => {
+        if (submitting) return;
         // Validation (unchanged)
         if (!title.trim()) {
             Alert.alert("Missing Information", "Please enter a moment title");
@@ -71,64 +155,144 @@ export default function AddEventScreen() {
           Alert.alert('Missing Information', 'Please select a location on the map');
           return;
         }
-        if (!date.trim()) {
-            Alert.alert("Missing Information", "Please enter a date");
+        if (!imageAsset) {
+            Alert.alert("Missing Information", "Please take a photo.");
             return;
         }
-        if (!startTime.trim()) {
-            Alert.alert("Missing Information", "Please enter a start time");
-            return;
-        }
-        if (!endTime.trim()) {
-            Alert.alert("Missing Information", "Please enter an end time");
-            return;
+        if (canUseCustomTime) {
+            if (!date.trim()) {
+                Alert.alert("Missing Information", "Please enter a date");
+                return;
+            }
+            if (!startTime.trim()) {
+                Alert.alert("Missing Information", "Please enter a start time");
+                return;
+            }
+            if (!endTime.trim()) {
+                Alert.alert("Missing Information", "Please enter an end time");
+                return;
+            }
         }
         
 
-        // TODO: Submit event to backend
+        const startTimestamp = isNow
+            ? Math.floor(Date.now() / 1000)
+            : parseTimeToEpochSeconds(date, startTime);
+        const endTimestamp = isNow
+            ? null
+            : parseTimeToEpochSeconds(date, endTime);
+
+        if (!startTimestamp || (canUseCustomTime && !endTimestamp)) {
+            Alert.alert(
+                "Invalid Date/Time",
+                "Use MM/DD/YYYY and times like 7:00 PM.",
+            );
+            return;
+        }
+
         const eventData = {
-            title,
-            description,
-            category: selectedCategory,
-            // location:
-            //     selectedLocation === "Other"
-            //         ? customLocation
-            //         : selectedLocation,
-            latitude,
-            longitude,
-            date,
-            startTime,
-            endTime,
-            // venue,
-            // organizer,
-            // contactEmail,
-            minimumPrice,
+            name: title.trim(),
+            description: description.trim() || null,
+            tags: selectedCategory ? [selectedCategory] : [],
+            vibes: [],
+            lat: latitude,
+            lng: longitude,
+            start_time: startTimestamp,
+            end_time: endTimestamp,
+            image_keys: [],
         };
 
-        console.log("Moment submitted:", eventData);
+        try {
+            setSubmitting(true);
+            const response = await fetch("http://localhost:8000/events", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(eventData),
+            });
 
-        Alert.alert("Success", "Your moment has been submitted!", [
-            {
-                text: "OK",
-                onPress: () => {
-                    // Reset form (unchanged)
-                    setTitle("");
-                    setDescription("");
-                    setSelectedCategory("");
-                    // setSelectedLocation("");
-                    // setCustomLocation("");
-                    setLatitude(null);
-                    setLongitude(null);
-                    setDate("");
-                    setStartTime("");
-                    setEndTime("");
-                    // setVenue("");
-                    // setOrganizer("");
-                    // setContactEmail("");
-                    setMinimumPrice("");
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(errorText || "Failed to create event");
+            }
+
+            const created = await response.json();
+            const eventId = created.event_id;
+            if (!eventId) {
+                throw new Error("Missing event_id in response");
+            }
+
+            const contentType = imageAsset.mimeType || "image/jpeg";
+            const uploadUrlResponse = await fetch(
+                `http://localhost:8000/events/image-upload-url?event_id=${encodeURIComponent(
+                    eventId,
+                )}&content_type=${encodeURIComponent(contentType)}`,
+                { method: "POST" },
+            );
+
+            if (!uploadUrlResponse.ok) {
+                const errorText = await uploadUrlResponse.text();
+                throw new Error(errorText || "Failed to get upload URL");
+            }
+
+            const uploadData = await uploadUrlResponse.json();
+            const uploadUrl = uploadData.upload_url;
+            const objectKey = uploadData.object_key;
+            if (!uploadUrl || !objectKey) {
+                throw new Error("Upload URL response missing fields");
+            }
+
+            const imageResponse = await fetch(imageAsset.uri);
+            const imageBlob = await imageResponse.blob();
+            const uploadResponse = await fetch(uploadUrl, {
+                method: "PUT",
+                headers: { "Content-Type": contentType },
+                body: imageBlob,
+            });
+
+            if (!uploadResponse.ok) {
+                throw new Error("Image upload failed");
+            }
+
+            const attachResponse = await fetch(
+                `http://localhost:8000/events/${encodeURIComponent(eventId)}`,
+                {
+                    method: "PATCH",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ image_keys: [objectKey] }),
                 },
-            },
-        ]);
+            );
+
+            if (!attachResponse.ok) {
+                const errorText = await attachResponse.text();
+                throw new Error(errorText || "Failed to attach image");
+            }
+
+            Alert.alert("Success", "Your moment has been submitted!", [
+                {
+                    text: "OK",
+                    onPress: () => {
+                        setTitle("");
+                        setDescription("");
+                        setSelectedCategory("");
+                        setLatitude(null);
+                        setLongitude(null);
+                        setDate("");
+                        setStartTime("");
+                        setEndTime("");
+                        setIsNow(false);
+                        setImageAsset(null);
+                    },
+                },
+            ]);
+        } catch (error) {
+            console.error("Failed to create event:", error);
+            Alert.alert(
+                "Submission Failed",
+                "We couldn’t submit your event. Please try again.",
+            );
+        } finally {
+            setSubmitting(false);
+        }
     };
 
     const styles = createStyles(colors);
@@ -185,52 +349,114 @@ export default function AddEventScreen() {
                         />
 
 
-                        {/* Date */}
+                        {/* Time */}
                         <View style={styles.inputGroup}>
-                            <ThemedText style={styles.label}>Date *</ThemedText>
-                            <TextInput
-                                style={[styles.input, { color: colors.text }]}
-                                placeholder="MM/DD/YYYY"
-                                placeholderTextColor="#8E8A83"
-                                value={date}
-                                onChangeText={setDate}
-                            />
-                        </View>
-
-                        {/* Start and End Time */}
-                        <View style={styles.rowInputs}>
-                            <View style={[styles.inputGroup, styles.halfWidth]}>
-                                <ThemedText style={styles.label}>
-                                    Start Time *
-                                </ThemedText>
-                                <TextInput
+                            <ThemedText style={styles.label}>Time *</ThemedText>
+                            <View style={styles.timeToggleRow}>
+                                <TouchableOpacity
                                     style={[
-                                        styles.input,
-                                        { color: colors.text },
+                                        styles.timeToggle,
+                                        !isNow && styles.timeToggleActive,
                                     ]}
-                                    placeholder="7:00 PM"
-                                    placeholderTextColor="#8E8A83"
-                                    value={startTime}
-                                    onChangeText={setStartTime}
-                                />
-                            </View>
-
-                            <View style={[styles.inputGroup, styles.halfWidth]}>
-                                <ThemedText style={styles.label}>
-                                    End Time *
-                                </ThemedText>
-                                <TextInput
+                                    onPress={() => setIsNow(false)}
+                                    activeOpacity={0.85}
+                                >
+                                    <ThemedText
+                                        style={[
+                                            styles.timeToggleText,
+                                            !isNow &&
+                                                styles.timeToggleTextActive,
+                                        ]}
+                                    >
+                                        Set a time
+                                    </ThemedText>
+                                </TouchableOpacity>
+                                <TouchableOpacity
                                     style={[
-                                        styles.input,
-                                        { color: colors.text },
+                                        styles.timeToggle,
+                                        isNow && styles.timeToggleActive,
                                     ]}
-                                    placeholder="11:00 PM"
-                                    placeholderTextColor="#8E8A83"
-                                    value={endTime}
-                                    onChangeText={setEndTime}
-                                />
+                                    onPress={() => setIsNow(true)}
+                                    activeOpacity={0.85}
+                                >
+                                    <ThemedText
+                                        style={[
+                                            styles.timeToggleText,
+                                            isNow &&
+                                                styles.timeToggleTextActive,
+                                        ]}
+                                    >
+                                        Now
+                                    </ThemedText>
+                                </TouchableOpacity>
                             </View>
                         </View>
+
+                        {canUseCustomTime && (
+                            <>
+                                {/* Date */}
+                                <View style={styles.inputGroup}>
+                                    <ThemedText style={styles.label}>
+                                        Date *
+                                    </ThemedText>
+                                    <TextInput
+                                        style={[
+                                            styles.input,
+                                            { color: colors.text },
+                                        ]}
+                                        placeholder="MM/DD/YYYY"
+                                        placeholderTextColor="#8E8A83"
+                                        value={date}
+                                        onChangeText={setDate}
+                                    />
+                                </View>
+
+                                {/* Start and End Time */}
+                                <View style={styles.rowInputs}>
+                                    <View
+                                        style={[
+                                            styles.inputGroup,
+                                            styles.halfWidth,
+                                        ]}
+                                    >
+                                        <ThemedText style={styles.label}>
+                                            Start Time *
+                                        </ThemedText>
+                                        <TextInput
+                                            style={[
+                                                styles.input,
+                                                { color: colors.text },
+                                            ]}
+                                            placeholder="7:00 PM"
+                                            placeholderTextColor="#8E8A83"
+                                            value={startTime}
+                                            onChangeText={setStartTime}
+                                        />
+                                    </View>
+
+                                    <View
+                                        style={[
+                                            styles.inputGroup,
+                                            styles.halfWidth,
+                                        ]}
+                                    >
+                                        <ThemedText style={styles.label}>
+                                            End Time *
+                                        </ThemedText>
+                                        <TextInput
+                                            style={[
+                                                styles.input,
+                                                { color: colors.text },
+                                            ]}
+                                            placeholder="11:00 PM"
+                                            placeholderTextColor="#8E8A83"
+                                            value={endTime}
+                                            onChangeText={setEndTime}
+                                        />
+                                    </View>
+                                </View>
+                            </>
+                        )}
 
                         {/* Category */}
                         <View style={styles.inputGroup}>
@@ -265,24 +491,6 @@ export default function AddEventScreen() {
                             </View>
                         </View>
 
-                        {/* Minimum Price (conditional) */}
-                        
-                        <View style={styles.inputGroup}>
-                            <ThemedText style={styles.label}>
-                                Minimum Price (if applicable)
-                            </ThemedText>
-                            <TextInput
-                                style={[
-                                    styles.input,
-                                    { color: colors.text },
-                                ]}
-                                placeholder="$0.00"
-                                placeholderTextColor="#8E8A83"
-                                value={minimumPrice}
-                                onChangeText={setMinimumPrice}
-                                keyboardType="decimal-pad"
-                            />
-                        </View>
                         
 
                         {/* Description */}
@@ -304,6 +512,70 @@ export default function AddEventScreen() {
                                 numberOfLines={4}
                                 textAlignVertical="top"
                             />
+                        </View>
+
+                        {/* Photo */}
+                        <View style={styles.inputGroup}>
+                            <ThemedText style={styles.label}>
+                                Event Photo *
+                            </ThemedText>
+                            {imageAsset ? (
+                                <View style={styles.photoPreviewWrap}>
+                                    <Image
+                                        source={{ uri: imageAsset.uri }}
+                                        style={styles.photoPreview}
+                                    />
+                                    <View style={styles.photoActionRow}>
+                                        <TouchableOpacity
+                                            style={styles.photoAction}
+                                            onPress={takePhoto}
+                                            activeOpacity={0.9}
+                                        >
+                                            <ThemedText
+                                                style={styles.photoActionText}
+                                            >
+                                                Retake photo
+                                            </ThemedText>
+                                        </TouchableOpacity>
+                                        <TouchableOpacity
+                                            style={styles.photoAction}
+                                            onPress={pickFromLibrary}
+                                            activeOpacity={0.9}
+                                        >
+                                            <ThemedText
+                                                style={styles.photoActionText}
+                                            >
+                                                Choose from library
+                                            </ThemedText>
+                                        </TouchableOpacity>
+                                    </View>
+                                </View>
+                            ) : (
+                                <View style={styles.photoButtonRow}>
+                                    <TouchableOpacity
+                                        style={styles.photoButton}
+                                        onPress={takePhoto}
+                                        activeOpacity={0.9}
+                                    >
+                                        <ThemedText
+                                            style={styles.photoButtonText}
+                                        >
+                                            Take a photo
+                                        </ThemedText>
+                                    </TouchableOpacity>
+                                    <TouchableOpacity
+                                        style={styles.photoButton}
+                                        onPress={pickFromLibrary}
+                                        activeOpacity={0.9}
+                                    >
+                                        <ThemedText
+                                            style={styles.photoButtonText}
+                                        >
+                                            Choose from library
+                                        </ThemedText>
+                                    </TouchableOpacity>
+                                </View>
+                            )}
                         </View>
 
                         {/* Organizer */}
@@ -338,12 +610,16 @@ export default function AddEventScreen() {
 
                         {/* Submit Button */}
                         <TouchableOpacity
-                            style={styles.submitButton}
+                            style={[
+                                styles.submitButton,
+                                submitting && styles.submitButtonDisabled,
+                            ]}
                             onPress={handleSubmit}
                             activeOpacity={0.9}
+                            disabled={submitting}
                         >
                             <ThemedText style={styles.submitButtonText}>
-                                Create Moment
+                                {submitting ? "Submitting..." : "Create Moment"}
                             </ThemedText>
                         </TouchableOpacity>
 
@@ -500,6 +776,31 @@ const createStyles = (colors: typeof Colors.light | typeof Colors.dark) =>
             gap: 12,
         },
         halfWidth: { flex: 1 },
+        timeToggleRow: {
+            flexDirection: "row",
+            gap: 10,
+        },
+        timeToggle: {
+            paddingHorizontal: 16,
+            paddingVertical: 10,
+            borderRadius: 999,
+            backgroundColor: "rgba(246,243,232,0.65)",
+            borderWidth: 1,
+            borderColor: "rgba(43,42,39,0.10)",
+        },
+        timeToggleActive: {
+            backgroundColor: "rgba(81,176,165,0.20)",
+            borderColor: "rgba(81,176,165,0.18)",
+        },
+        timeToggleText: {
+            fontSize: 14,
+            color: "#2B2A27",
+            opacity: 0.82,
+        },
+        timeToggleTextActive: {
+            color: "#2B2A27",
+            opacity: 1,
+        },
 
         // Submit button matches “premium” look (dark off-black)
         submitButton: {
@@ -521,6 +822,53 @@ const createStyles = (colors: typeof Colors.light | typeof Colors.dark) =>
             fontSize: 16,
             color: "#F6F3E8",
             letterSpacing: -0.1,
+        },
+        submitButtonDisabled: {
+            opacity: 0.7,
+        },
+        photoButton: {
+            flex: 1,
+            borderRadius: 16,
+            paddingVertical: 14,
+            alignItems: "center",
+            backgroundColor: "rgba(246,243,232,0.70)",
+            borderWidth: 1,
+            borderColor: "rgba(43,42,39,0.10)",
+        },
+        photoButtonText: {
+            fontFamily: "FrauncesSemiBold",
+            fontSize: 15,
+            color: "#2B2A27",
+        },
+        photoButtonRow: {
+            flexDirection: "row",
+            gap: 10,
+        },
+        photoPreviewWrap: {
+            gap: 10,
+        },
+        photoPreview: {
+            width: "100%",
+            height: 220,
+            borderRadius: 18,
+        },
+        photoActionRow: {
+            flexDirection: "row",
+            gap: 10,
+            flexWrap: "wrap",
+        },
+        photoAction: {
+            alignSelf: "flex-start",
+            paddingHorizontal: 14,
+            paddingVertical: 10,
+            borderRadius: 999,
+            backgroundColor: "rgba(81,176,165,0.20)",
+            borderWidth: 1,
+            borderColor: "rgba(81,176,165,0.18)",
+        },
+        photoActionText: {
+            fontSize: 14,
+            color: "#2B2A27",
         },
 
         disclaimer: {

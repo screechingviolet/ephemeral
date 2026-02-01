@@ -11,6 +11,7 @@ const TAB_COLORS = {
   explore: '#E98E58',
   moments: '#AC515F',
   create: '#6E1352',
+  profile: '#51B0A5'
 };
 
 export default function TabLayout() {
@@ -66,6 +67,15 @@ export default function TabLayout() {
           tabBarActiveTintColor: TAB_COLORS.create,
           tabBarIcon: ({ color }) => <IconSymbol size={28} name="paintbrush.fill" color={color} />,
           tabBarStyle: getTabBarStyle(TAB_COLORS.create),
+        }}
+      />
+      <Tabs.Screen
+        name="profile"
+        options={{
+          title: 'profile',
+          tabBarActiveTintColor: TAB_COLORS.profile,
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="person.fill" color={color} />,
+          tabBarStyle: getTabBarStyle(TAB_COLORS.profile),
         }}
       />
     </Tabs>

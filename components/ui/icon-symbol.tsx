@@ -23,6 +23,7 @@ const MAPPING = {
   'paintbrush.fill': 'brush',
   'calendar.day.timeline.left': 'view-timeline',
   'list.bullet': 'format-list-bulleted',
+  'person.fill': 'person',
 } as IconMapping;
 
 /**
