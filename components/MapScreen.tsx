@@ -23,7 +23,11 @@ interface Event {
   image_keys?: string[];
 }
 
-export default function MapScreen() {
+type MapScreenProps = {
+  refreshSignal?: number;
+};
+
+export default function MapScreen({ refreshSignal = 0 }: MapScreenProps) {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
   
@@ -44,7 +48,7 @@ export default function MapScreen() {
     if (location) {
       fetchNearbyEvents(location.latitude, location.longitude);
     }
-  }, [location]);
+  }, [location, refreshSignal]);
 
 
 

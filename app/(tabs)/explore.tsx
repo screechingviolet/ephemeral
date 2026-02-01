@@ -2,19 +2,28 @@ import MapScreen from "@/components/MapScreen";
 import StripeGate from "@/components/StripeGate";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
-import { StyleSheet } from "react-native";
+import { Pressable, StyleSheet } from "react-native";
+import { useState } from "react";
 
 export default function ExploreScreen() {
+    const [refreshSignal, setRefreshSignal] = useState(0);
+
     return (
         <ThemedView style={styles.container}>
             <ThemedView style={styles.header}>
                 <ThemedText type="title" style={styles.title}>
                     Explore
                 </ThemedText>
+                <Pressable
+                    onPress={() => setRefreshSignal((prev) => prev + 1)}
+                    style={styles.refreshButton}
+                >
+                    <ThemedText style={styles.refreshButtonText}>↻</ThemedText>
+                </Pressable>
             </ThemedView>
             <ThemedView style={styles.mapContainer}>
-                <StripeGate>                    
-            <MapScreen />
+                <StripeGate>
+                    <MapScreen refreshSignal={refreshSignal} />
                 </StripeGate>
             </ThemedView>
         </ThemedView>
@@ -31,6 +40,7 @@ const styles = StyleSheet.create({
         paddingBottom: 16,
         zIndex: 10,
         alignItems: "center",
+        justifyContent: "center",
     },
     title: {
         fontFamily: "FrauncesBold",
@@ -40,5 +50,23 @@ const styles = StyleSheet.create({
     },
     mapContainer: {
         flex: 1,
+    },
+    refreshButton: {
+        position: "absolute",
+        right: 20,
+        top: 70,
+        width: 36,
+        height: 36,
+        borderRadius: 18,
+        alignItems: "center",
+        justifyContent: "center",
+        backgroundColor: "rgba(246,243,232,0.9)",
+        borderWidth: 1,
+        borderColor: "rgba(43,42,39,0.12)",
+    },
+    refreshButtonText: {
+        fontSize: 18,
+        color: "#2B2A27",
+        opacity: 0.8,
     },
 });

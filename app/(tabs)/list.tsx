@@ -16,6 +16,7 @@ import {
   View,
   ActivityIndicator,
   Alert,
+  Pressable,
 } from "react-native";
 import * as Location from "expo-location";
 
@@ -85,41 +86,43 @@ export default function EventsScreen() {
         })();
     }, []);
 
+    const fetchEvents = async (
+        latitude: number,
+        longitude: number,
+    ): Promise<void> => {
+        setLoading(true);
+        try {
+            const params = new URLSearchParams({
+                lat: latitude.toString(),
+                lng: longitude.toString(),
+                radius_m: "4500", // 10km radius, adjust as needed
+                active_only: "true",
+                limit: "50",
+                sort: "distance",
+            });
+
+            const response = await fetch(
+                `${API_BASE_URL}/events/nearby?${params}`
+            );
+
+            if (!response.ok) {
+                throw new Error("Failed to fetch events");
+            }
+
+            const data: Event[] = await response.json();
+            setEvents(data);
+        } catch (error) {
+            console.error("Error fetching events:", error);
+            Alert.alert("Error", "Failed to load events. Please try again.");
+        } finally {
+            setLoading(false);
+        }
+    };
+
     // Fetch events from API
     useEffect(() => {
         if (!location) return;
-
-        const fetchEvents = async () => {
-            setLoading(true);
-            try {
-                const params = new URLSearchParams({
-                    lat: location.latitude.toString(),
-                    lng: location.longitude.toString(),
-                    radius_m: "4500", // 10km radius, adjust as needed
-                    active_only: "true",
-                    limit: "50",
-                    sort: "distance",
-                });
-
-                const response = await fetch(
-                    `${API_BASE_URL}/events/nearby?${params}`
-                );
-
-                if (!response.ok) {
-                    throw new Error("Failed to fetch events");
-                }
-
-                const data: Event[] = await response.json();
-                setEvents(data);
-            } catch (error) {
-                console.error("Error fetching events:", error);
-                Alert.alert("Error", "Failed to load events. Please try again.");
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchEvents();
+        fetchEvents(location.latitude, location.longitude);
     }, [location]);
 
     // Filter events based on category and search
@@ -171,17 +174,27 @@ export default function EventsScreen() {
             resizeMode="cover"
         >
             <StripeGate>
-            <ThemedView style={styles.container}>
-                <ScrollView
-                    style={styles.scrollView}
-                    showsVerticalScrollIndicator={false}
-                >
+                <ThemedView style={styles.container}>
+                    <ScrollView
+                        style={styles.scrollView}
+                        showsVerticalScrollIndicator={false}
+                    >
                     {/* Header */}
                     <View style={styles.header}>
                         <ThemedText style={styles.title}>Moments</ThemedText>
                         <ThemedText style={styles.subtitle}>
-                            Discover what's happening nearby
+                            Discover what’s happening nearby
                         </ThemedText>
+                        <Pressable
+                            onPress={() => {
+                                if (location) {
+                                    fetchEvents(location.latitude, location.longitude);
+                                }
+                            }}
+                            style={styles.refreshButton}
+                        >
+                            <ThemedText style={styles.refreshButtonText}>↻</ThemedText>
+                        </Pressable>
                     </View>
 
                     {/* Search Bar */}
@@ -336,12 +349,12 @@ const createStyles = (colors: typeof Colors.light | typeof Colors.dark) =>
         scrollView: { flex: 1 },
 
         // --- header ---
-        header: {
-            paddingHorizontal: 20,
-            paddingTop: 70,
-            paddingBottom: 18,
-            alignItems: "center",
-        },
+    header: {
+        paddingHorizontal: 20,
+        paddingTop: 70,
+        paddingBottom: 18,
+        alignItems: "center",
+    },
         title: {
             fontFamily: "FrauncesBold",
             fontSize: 40,
@@ -349,15 +362,33 @@ const createStyles = (colors: typeof Colors.light | typeof Colors.dark) =>
             letterSpacing: -0.3,
             color: "#2B2A27",
         },
-        subtitle: {
-            fontFamily: "Fraunces",
-            fontSize: 16,
-            lineHeight: 24,
-            opacity: 0.75,
-            marginTop: 6,
-            color: "#35332F",
-            textAlign: "center",
-        },
+    subtitle: {
+        fontFamily: "Fraunces",
+        fontSize: 16,
+        lineHeight: 24,
+        opacity: 0.75,
+        marginTop: 6,
+        color: "#35332F",
+        textAlign: "center",
+    },
+    refreshButton: {
+        position: "absolute",
+        right: 20,
+        top: 70,
+        width: 36,
+        height: 36,
+        borderRadius: 18,
+        alignItems: "center",
+        justifyContent: "center",
+        backgroundColor: "rgba(246,243,232,0.9)",
+        borderWidth: 1,
+        borderColor: "rgba(43,42,39,0.12)",
+    },
+    refreshButtonText: {
+        fontSize: 18,
+        color: "#2B2A27",
+        opacity: 0.8,
+    },
 
         // --- search ---
         searchContainer: {
