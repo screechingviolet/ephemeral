@@ -19,6 +19,7 @@ type Role = "user" | "assistant";
 type Msg = { id: string; role: Role; text: string };
 
 const PHRASES = [
+    "fleeting moments",
     "temporary art",
     "pop-up stands",
     "live concerts",
