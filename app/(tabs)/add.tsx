@@ -18,11 +18,14 @@ import * as ImagePicker from "expo-image-picker";
 
 
 const CATEGORIES = [
-    "Free Entry - Tip Optional",
-    "Ticketed",
-    "Free Entry - No Payment",
-    "After-Hours",
-];
+    "Free",
+    "Tip Optional",
+    "Pay To Experience",
+    "House Sale",
+    "After-Hours Sale",
+    "Popup Vendor",
+    "Other Moment"
+    ];
 
 const LOCATIONS = ["Providence", "Warwick", "Newport", "Other"];
 
@@ -46,7 +49,6 @@ export default function AddEventScreen() {
     const [venue, setVenue] = useState("");
     const [organizer, setOrganizer] = useState("");
     const [contactEmail, setContactEmail] = useState("");
-    const [minimumPrice, setMinimumPrice] = useState("");
 
     const parseTimeToEpochSeconds = (
         dateText: string,
@@ -171,13 +173,7 @@ export default function AddEventScreen() {
                 return;
             }
         }
-        if (selectedCategory === "Ticketed" && !minimumPrice.trim()) {
-            Alert.alert(
-                "Missing Information",
-                "Please enter a minimum price for ticketed events",
-            );
-            return;
-        }
+        
 
         const startTimestamp = isNow
             ? Math.floor(Date.now() / 1000)
@@ -284,7 +280,6 @@ export default function AddEventScreen() {
                         setStartTime("");
                         setEndTime("");
                         setIsNow(false);
-                        setMinimumPrice("");
                         setImageAsset(null);
                     },
                 },
@@ -319,9 +314,9 @@ export default function AddEventScreen() {
                 >
                     {/* Header (same vibe as Events page) */}
                     <View style={styles.header}>
-                        <ThemedText style={styles.title}>Add Event</ThemedText>
+                        <ThemedText style={styles.title}>Create a Moment</ThemedText>
                         <ThemedText style={styles.subtitle}>
-                            Share what's happening in your community
+                            What's happening in your community?
                         </ThemedText>
                     </View>
 
@@ -330,7 +325,7 @@ export default function AddEventScreen() {
                         {/* Event Title */}
                         <View style={styles.inputGroup}>
                             <ThemedText style={styles.label}>
-                                Event Title *
+                                Moment Title *
                             </ThemedText>
                             <TextInput
                                 style={[styles.input, { color: colors.text }]}
@@ -341,94 +336,7 @@ export default function AddEventScreen() {
                             />
                         </View>
 
-                        {/* Category */}
-                        <View style={styles.inputGroup}>
-                            <ThemedText style={styles.label}>
-                                Category *
-                            </ThemedText>
-                            <View style={styles.categoryGrid}>
-                                {CATEGORIES.map((category) => (
-                                    <TouchableOpacity
-                                        key={category}
-                                        style={[
-                                            styles.chip,
-                                            selectedCategory === category &&
-                                                styles.chipActive,
-                                        ]}
-                                        onPress={() =>
-                                            setSelectedCategory(category)
-                                        }
-                                        activeOpacity={0.85}
-                                    >
-                                        <ThemedText
-                                            style={[
-                                                styles.chipText,
-                                                selectedCategory === category &&
-                                                    styles.chipTextActive,
-                                            ]}
-                                        >
-                                            {category}
-                                        </ThemedText>
-                                    </TouchableOpacity>
-                                ))}
-                            </View>
-                        </View>
-
-                        {/*
-                        <View style={styles.inputGroup}>
-                            <ThemedText style={styles.label}>
-                                Location *
-                            </ThemedText>
-
-                            <View style={styles.locationGrid}>
-                                {LOCATIONS.map((location) => (
-                                    <TouchableOpacity
-                                        key={location}
-                                        style={[
-                                            styles.chip,
-                                            selectedLocation === location &&
-                                                styles.locationChipActive,
-                                        ]}
-                                        onPress={() =>
-                                            setSelectedLocation(location)
-                                        }
-                                        activeOpacity={0.85}
-                                    >
-                                        <ThemedText
-                                            style={[
-                                                styles.chipText,
-                                                selectedLocation === location &&
-                                                    styles.locationChipTextActive,
-                                            ]}
-                                        >
-                                            {location}
-                                        </ThemedText>
-                                    </TouchableOpacity>
-                                ))}
-                            </View>
-
-                            {selectedLocation === "Other" && (
-                                <TextInput
-                                    style={[
-                                        styles.input,
-                                        styles.inputMarginTop,
-                                        { color: colors.text },
-                                    ]}
-                                    placeholder="Enter location"
-                                    placeholderTextColor="#8E8A83"
-                                    value={customLocation}
-                                    onChangeText={setCustomLocation}
-                                />
-                            )}
-
-                            
-                            <View style={styles.placeholderCard}>
-                                <ThemedText style={styles.placeholderText}>
-                                    📍 Address entry and map selection coming
-                                    soon
-                                </ThemedText>
-                            </View>
-                        </View>*/}
+                        
 
                         {/* Location Picker with Map */}
                         <LocationPicker
@@ -440,19 +348,6 @@ export default function AddEventScreen() {
                           initialLongitude={longitude || undefined}
                         />
 
-                        {/* Venue */}
-                        {/*<View style={styles.inputGroup}>
-                            <ThemedText style={styles.label}>
-                                Venue Name
-                            </ThemedText>
-                            <TextInput
-                                style={[styles.input, { color: colors.text }]}
-                                placeholder="e.g., The Rooftop Bar"
-                                placeholderTextColor="#8E8A83"
-                                value={venue}
-                                onChangeText={setVenue}
-                            />
-                        </View>*/}
 
                         {/* Time */}
                         <View style={styles.inputGroup}>
@@ -563,25 +458,40 @@ export default function AddEventScreen() {
                             </>
                         )}
 
-                        {/* Minimum Price (conditional) */}
-                        {selectedCategory === "Ticketed" && (
-                            <View style={styles.inputGroup}>
-                                <ThemedText style={styles.label}>
-                                    Minimum Price *
-                                </ThemedText>
-                                <TextInput
-                                    style={[
-                                        styles.input,
-                                        { color: colors.text },
-                                    ]}
-                                    placeholder="$0.00"
-                                    placeholderTextColor="#8E8A83"
-                                    value={minimumPrice}
-                                    onChangeText={setMinimumPrice}
-                                    keyboardType="decimal-pad"
-                                />
+                        {/* Category */}
+                        <View style={styles.inputGroup}>
+                            <ThemedText style={styles.label}>
+                                Monetary Category *
+                            </ThemedText>
+                            <View style={styles.categoryGrid}>
+                                {CATEGORIES.map((category) => (
+                                    <TouchableOpacity
+                                        key={category}
+                                        style={[
+                                            styles.chip,
+                                            selectedCategory === category &&
+                                                styles.chipActive,
+                                        ]}
+                                        onPress={() =>
+                                            setSelectedCategory(category)
+                                        }
+                                        activeOpacity={0.85}
+                                    >
+                                        <ThemedText
+                                            style={[
+                                                styles.chipText,
+                                                selectedCategory === category &&
+                                                    styles.chipTextActive,
+                                            ]}
+                                        >
+                                            {category}
+                                        </ThemedText>
+                                    </TouchableOpacity>
+                                ))}
                             </View>
-                        )}
+                        </View>
+
+                        
 
                         {/* Description */}
                         <View style={styles.inputGroup}>
@@ -709,7 +619,7 @@ export default function AddEventScreen() {
                             disabled={submitting}
                         >
                             <ThemedText style={styles.submitButtonText}>
-                                {submitting ? "Submitting..." : "Create Event"}
+                                {submitting ? "Submitting..." : "Create Moment"}
                             </ThemedText>
                         </TouchableOpacity>
 
@@ -803,6 +713,8 @@ const createStyles = (colors: typeof Colors.light | typeof Colors.dark) =>
         // Chips (shared)
         categoryGrid: {
             gap: 10,
+            flexDirection: "row",
+            flexWrap: "wrap",
         },
         locationGrid: {
             flexDirection: "row",

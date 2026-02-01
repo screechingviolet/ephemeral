@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import {
   FlatList,
   KeyboardAvoidingView,
@@ -7,6 +7,8 @@ import {
   StyleSheet,
   TextInput,
   View,
+  Animated,
+  ImageBackground,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -16,10 +18,50 @@ import { ThemedView } from "@/components/themed-view";
 type Role = "user" | "assistant";
 type Msg = { id: string; role: Role; text: string };
 
+const PHRASES = [
+  "temporary art",
+  "pop-up stands",
+  "live concerts",
+  "hidden galleries",
+  "street performances"
+];
+
 export default function HomeScreen() {
     const insets = useSafeAreaInsets();
 
     const [phase, setPhase] = useState<"landing" | "chat">("landing");
+
+    // --- ANIMATION LOGIC ---
+    const [phraseIndex, setPhraseIndex] = useState(0);
+    const fadeAnim = useRef(new Animated.Value(1)).current;
+    const slideAnim = useRef(new Animated.Value(0)).current;
+
+    useEffect(() => {
+    if (phase === "landing") {
+        const cycleAnimation = () => {
+        // 1. Fade Out and Slide Up
+        Animated.parallel([
+            Animated.timing(fadeAnim, { toValue: 0, duration: 400, useNativeDriver: true }),
+            Animated.timing(slideAnim, { toValue: -10, duration: 400, useNativeDriver: true })
+        ]).start(() => {
+            // 2. Switch Text
+            setPhraseIndex((prev) => (prev + 1) % PHRASES.length);
+            
+            // 3. Reset position to bottom BEFORE starting fade in
+            slideAnim.setValue(10);
+            
+            // 4. Fade In and Slide Up to center
+            Animated.parallel([
+            Animated.timing(fadeAnim, { toValue: 1, duration: 400, useNativeDriver: true }),
+            Animated.timing(slideAnim, { toValue: 0, duration: 400, useNativeDriver: true })
+            ]).start();
+        });
+        };
+
+        const interval = setInterval(cycleAnimation, 5000);
+        return () => clearInterval(interval);
+    }
+    }, [phase, fadeAnim, slideAnim]);
     const [input, setInput] = useState("");
     const [messages, setMessages] = useState<Msg[]>([
         {
@@ -119,50 +161,72 @@ export default function HomeScreen() {
     // ---------- LANDING (center textbox) ----------
     if (phase === "landing") {
         return (
-            <ThemedView style={styles.screen}>
+        <ImageBackground
+            source={require("@/assets/images/ephemeral_home_background.png")}
+            style={styles.screen}
+            resizeMode="cover"
+        >
+            <ThemedView style={[styles.screen, { backgroundColor: 'transparent' }]}>
                 <View style={styles.landingContainer}>
-                    <ThemedText style={styles.landingBrand}>
-                        ephemeral
-                    </ThemedText>
-                    <ThemedText style={styles.landingTagline}>
-                        Discover temporary art in an ever-changing city.
-                    </ThemedText>
-
-                    {/* Center browser-style textbox */}
-                    <SearchBar />
+                <ThemedText style={styles.landingBrand}>ephemeral</ThemedText>
+                
+                <View style={styles.taglineRow}>
+                    <ThemedText style={styles.landingTagline}>Discover </ThemedText>
+                    
+                    <View style={styles.animatedTextContainer}>
+                    <Animated.View style={{ 
+                        opacity: fadeAnim, 
+                        transform: [{ translateY: slideAnim }] 
+                    }}>
+                        <ThemedText style={[styles.landingTagline, styles.highlightText]}>
+                        {PHRASES[phraseIndex]}
+                        </ThemedText>
+                    </Animated.View>
+                    </View>
+                    <ThemedText style={styles.landingTagline}> in an</ThemedText>
+                </View>
+                <ThemedText style={[styles.landingTagline, { marginBottom: 12 }]}>
+                    ever-changing city.
+                </ThemedText>
+                <SearchBar />
                 </View>
             </ThemedView>
+        </ImageBackground>
         );
     }
 
     // ---------- CHAT (textbox pinned to bottom) ----------
     return (
-        <ThemedView style={styles.screen}>
-            {/* Header with safe area */}
-            <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
-                <ThemedText style={styles.headerBrand}>Ephemera</ThemedText>
-                <ThemedText style={styles.headerMeta}>beta</ThemedText>
-            </View>
-
-            {/* Messages */}
-            <FlatList
-                ref={listRef}
-                data={messages}
-                keyExtractor={(m) => m.id}
-                renderItem={renderBubble}
-                contentContainerStyle={styles.listContent}
-                onContentSizeChange={() =>
-                    listRef.current?.scrollToEnd({ animated: true })
-                }
-            />
-
-            {/* Bottom search bar */}
-            <KeyboardAvoidingView
-                behavior={Platform.OS === "ios" ? "padding" : undefined}
-            >
-                <SearchBar bottom />
-            </KeyboardAvoidingView>
-        </ThemedView>
+        <ImageBackground
+            source={require("@/assets/images/bg.png")}
+            style={styles.screen}
+            resizeMode="cover"
+        >
+            <ThemedView style={[styles.screen, { backgroundColor: 'transparent' }]}>
+                {/* Header with safe area */}
+                <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
+                    <ThemedText style={styles.headerBrand}>Ephemera</ThemedText>
+                    <ThemedText style={styles.headerMeta}>beta</ThemedText>
+                </View>
+                {/* Messages */}
+                <FlatList
+                    ref={listRef}
+                    data={messages}
+                    keyExtractor={(m) => m.id}
+                    renderItem={renderBubble}
+                    contentContainerStyle={styles.listContent}
+                    onContentSizeChange={() =>
+                        listRef.current?.scrollToEnd({ animated: true })
+                    }
+                />
+                {/* Bottom search bar */}
+                <KeyboardAvoidingView
+                    behavior={Platform.OS === "ios" ? "padding" : undefined}
+                >
+                    <SearchBar bottom />
+                </KeyboardAvoidingView>
+            </ThemedView>
+        </ImageBackground>
     );
 }
 
@@ -189,8 +253,20 @@ const styles = StyleSheet.create({
     landingTagline: {
         fontSize: 16,
         opacity: 0.7,
-        marginBottom: 28,
         textAlign: "center",
+        marginBottom: 0, // Set this to 0 because the taglineRow handles the spacing
+    },
+    taglineRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        height: 30, 
+        marginTop: 10, // Add space above the row
+        marginBottom: 4, // Space between this and the "in an ever-changing city" line
+    },
+    animatedTextContainer: {
+        minWidth: 0, // Adjust this to fit your longest phrase
+        alignItems: 'flex-start',
     },
 
     // Header
@@ -275,9 +351,20 @@ const styles = StyleSheet.create({
         marginLeft: 8,
         paddingHorizontal: 12,
         paddingVertical: 9,
-        borderRadius: 16,
+        borderRadius: 18,
         backgroundColor: "#2B2A27",
     },
-    searchBtnDisabled: { opacity: 0.35 },
-    searchBtnText: { color: "#F6F3E8", fontSize: 14 },
-});
+    // Move these out of the brackets above
+    searchBtnDisabled: { 
+        opacity: 0.35 
+    },
+    searchBtnText: { 
+        color: "#F6F3E8", 
+        fontSize: 14 
+    },
+    highlightText: {
+        fontWeight: "700",
+        color: "#000000", 
+        paddingHorizontal: 4,
+    },
+}); // End of StyleSheet

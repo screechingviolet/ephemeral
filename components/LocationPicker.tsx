@@ -186,7 +186,7 @@ export default function LocationPicker({
           onSubmitEditing={searchAddress}
         />
         <TouchableOpacity
-          style={[styles.searchButton, { backgroundColor: colors.tint }]}
+          style={[styles.searchButton, { backgroundColor: colors.icon }]}
           onPress={searchAddress}
           disabled={searching}
         >
@@ -200,10 +200,10 @@ export default function LocationPicker({
 
       {/* Quick Actions */}
       <TouchableOpacity
-        style={[styles.currentLocationButton, { borderColor: colors.icon }]}
+        style={[styles.currentLocationButton, { borderColor: "rgba(43,42,39,0.10)" }]}
         onPress={useCurrentLocation}
       >
-        <ThemedText style={[styles.currentLocationText, { color: colors.tint }]}>
+        <ThemedText style={[styles.currentLocationText, { color: colors.primary }]}>
           📍 Use My Current Location
         </ThemedText>
       </TouchableOpacity>
@@ -268,16 +268,17 @@ const createStyles = (colors: typeof Colors.light | typeof Colors.dark) =>
     },
     input: {
       flex: 1,
-      backgroundColor: colors.background === '#F6F3E8' ? '#FFFFFF' : '#1A1410',
-      borderRadius: 12,
+      // backgroundColor: colors.background === '#F6F3E8' ? '#FFFFFF' : '#1A1410',
+      backgroundColor: "rgba(246,243,232,0.70)",
+      borderRadius: 18,
       padding: 16,
       fontSize: 16,
       borderWidth: 1,
-      borderColor: colors.icon,
+      borderColor: "rgba(43,42,39,0.10)",
     },
     searchButton: {
       paddingHorizontal: 20,
-      borderRadius: 12,
+      borderRadius: 18,
       justifyContent: 'center',
       alignItems: 'center',
       minWidth: 80,
@@ -289,10 +290,11 @@ const createStyles = (colors: typeof Colors.light | typeof Colors.dark) =>
     },
     currentLocationButton: {
       padding: 14,
-      borderRadius: 12,
+      borderRadius: 18,
       borderWidth: 1,
       alignItems: 'center',
       marginBottom: 16,
+      backgroundColor: "rgba(246,243,232,0.70)",
     },
     currentLocationText: {
       fontSize: 15,
@@ -300,10 +302,10 @@ const createStyles = (colors: typeof Colors.light | typeof Colors.dark) =>
     },
     mapContainer: {
       height: 300,
-      borderRadius: 12,
+      borderRadius: 18,
       overflow: 'hidden',
       borderWidth: 1,
-      borderColor: colors.icon,
+      borderColor: "rgba(43,42,39,0.10)",
       position: 'relative',
     },
     map: {
@@ -348,7 +350,7 @@ const createStyles = (colors: typeof Colors.light | typeof Colors.dark) =>
       padding: 12,
       borderRadius: 8,
       borderWidth: 1,
-      borderColor: colors.icon,
+      borderColor: "rgba(43,42,39,0.10)",
     },
     coordinatesLabel: {
       fontSize: 12,
