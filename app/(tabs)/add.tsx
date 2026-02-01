@@ -53,17 +53,17 @@ export default function AddEventScreen() {
             Alert.alert("Missing Information", "Please select a category");
             return;
         }
-        if (!selectedLocation) {
-            Alert.alert("Missing Information", "Please select a location");
-            return;
-        }
-        if (selectedLocation === "Other" && !customLocation.trim()) {
-            Alert.alert(
-                "Missing Information",
-                "Please enter a custom location",
-            );
-            return;
-        }
+        // if (!selectedLocation) {
+        //     Alert.alert("Missing Information", "Please select a location");
+        //     return;
+        // }
+        // if (selectedLocation === "Other" && !customLocation.trim()) {
+        //     Alert.alert(
+        //         "Missing Information",
+        //         "Please enter a custom location",
+        //     );
+        //     return;
+        // }
         if (!latitude || !longitude) {
           Alert.alert('Missing Information', 'Please select a location on the map');
           return;
@@ -93,18 +93,18 @@ export default function AddEventScreen() {
             title,
             description,
             category: selectedCategory,
-            location:
-                selectedLocation === "Other"
-                    ? customLocation
-                    : selectedLocation,
+            // location:
+            //     selectedLocation === "Other"
+            //         ? customLocation
+            //         : selectedLocation,
             latitude,
             longitude,
             date,
             startTime,
             endTime,
-            venue,
-            organizer,
-            contactEmail,
+            // venue,
+            // organizer,
+            // contactEmail,
             ...(selectedCategory === "Ticketed" && { minimumPrice }),
         };
 
@@ -118,16 +118,16 @@ export default function AddEventScreen() {
                     setTitle("");
                     setDescription("");
                     setSelectedCategory("");
-                    setSelectedLocation("");
-                    setCustomLocation("");
+                    // setSelectedLocation("");
+                    // setCustomLocation("");
                     setLatitude(null);
-            setLongitude(null);
+                    setLongitude(null);
                     setDate("");
                     setStartTime("");
                     setEndTime("");
-                    setVenue("");
-                    setOrganizer("");
-                    setContactEmail("");
+                    // setVenue("");
+                    // setOrganizer("");
+                    // setContactEmail("");
                     setMinimumPrice("");
                 },
             },
