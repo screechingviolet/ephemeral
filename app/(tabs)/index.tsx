@@ -274,7 +274,7 @@ export default function HomeScreen() {
                 style={[styles.screen, { backgroundColor: "transparent" }]}
             >
                 <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
-                    <ThemedText style={styles.headerBrand}>ephemera</ThemedText>
+                    <ThemedText style={styles.headerBrand}>ephemeral</ThemedText>
                 </View>
 
                 <FlatList
