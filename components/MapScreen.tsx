@@ -12,6 +12,7 @@ interface Event {
   location: string;
   date: string;
   time: string;
+  endtime: string;
   description: string;
   latitude: number;
   longitude: number;
@@ -55,7 +56,7 @@ const MOCK_EVENTS: Event[] = [
   {
     id: 4,
     title: 'Art Gallery Opening',
-    category: 'Free Entry - Tip Optional',
+    category: 'Free - Tip Optional',
     location: 'Providence',
     date: 'Feb 12, 2026',
     time: '6:00 PM',
@@ -66,14 +67,36 @@ const MOCK_EVENTS: Event[] = [
   {
     id: 5,
     title: 'Live Music Night',
-    category: 'After-Hours',
+    category: 'Ticketed',
     location: 'Warwick',
-    date: 'Feb 14, 2026',
+    date: 'Feb 16, 2026',
     time: '8:00 PM',
     description: 'Local bands and acoustic performances in an intimate setting',
     latitude: 41.7100,
     longitude: -71.4200,
   },
+  {
+    id: 6,
+    title: 'Leftover Flower Bouquets',
+    category: 'After-Hours Sale',
+    location: 'Warwick',
+    date: 'Feb 14, 2026',
+    time: '8:00 PM',
+    description: 'Selling for $2 each!',
+    latitude: 41.8000,
+    longitude: -71.4200,
+  },
+  {
+    id: 7,
+    title: 'Violinist Performance',
+    category: 'Tip Optional',
+    location: 'Warwick',
+    date: 'Feb 16, 2026',
+    time: '8:00 PM',
+    description: 'Playing on the street corner. Come by and watch :)',
+    latitude: 41.7100,
+    longitude: -71.5000,
+  }
 ];
 
 export default function MapScreen() {
@@ -236,7 +259,7 @@ export default function MapScreen() {
 
                   <View style={styles.modalSection}>
                     <Text style={[styles.modalLabel, { color: colors.text, opacity: 0.7 }]}>
-                      📍 Location
+                      Location
                     </Text>
                     <Text style={[styles.modalValue, { color: colors.text }]}>
                       {selectedEvent.location}
@@ -246,7 +269,7 @@ export default function MapScreen() {
                   <View style={styles.modalRow}>
                     <View style={[styles.modalSection, { flex: 1 }]}>
                       <Text style={[styles.modalLabel, { color: colors.text, opacity: 0.7 }]}>
-                        📅 Date
+                        Date
                       </Text>
                       <Text style={[styles.modalValue, { color: colors.text }]}>
                         {selectedEvent.date}
@@ -255,7 +278,7 @@ export default function MapScreen() {
 
                     <View style={[styles.modalSection, { flex: 1 }]}>
                       <Text style={[styles.modalLabel, { color: colors.text, opacity: 0.7 }]}>
-                        🕐 Time
+                        Time
                       </Text>
                       <Text style={[styles.modalValue, { color: colors.text }]}>
                         {selectedEvent.time}
